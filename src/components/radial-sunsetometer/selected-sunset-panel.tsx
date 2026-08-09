@@ -8,6 +8,7 @@ import { getChromaCategory } from "@/lib/colour-analysis/chroma-category";
 type SelectedSunsetPanelProps = {
   sunset?: AnalysedSunset;
   onRename: (sunsetId: string, displayName: string) => void;
+  variant?: "default" | "atlas";
 };
 
 function formatSolarOffset(minutes: number): string {
@@ -118,12 +119,15 @@ function EditableSunsetName({
 export function SelectedSunsetPanel({
   sunset,
   onRename,
+  variant = "default",
 }: SelectedSunsetPanelProps) {
+  const variantClass =
+    variant === "atlas" ? " selectedSunsetPanelAtlas" : "";
   if (!sunset) {
     return (
       <aside
         aria-labelledby="selected-sunset-title"
-        className="selectedSunsetPanel selectedSunsetPanelEmpty"
+        className={`selectedSunsetPanel selectedSunsetPanelEmpty${variantClass}`}
       >
         <p className="sectionLabel">Selected observation</p>
         <h3 id="selected-sunset-title">No sunset selected</h3>
@@ -137,7 +141,7 @@ export function SelectedSunsetPanel({
   return (
     <aside
       aria-labelledby="selected-sunset-title"
-      className="selectedSunsetPanel"
+      className={`selectedSunsetPanel${variantClass}`}
     >
       <header className="selectedSunsetPoetic">
         <p className="evidenceLabel">{getProvenanceLabel("poetic")}</p>

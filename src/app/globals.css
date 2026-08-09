@@ -13,6 +13,8 @@
 
 html {
   background: var(--paper);
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
 }
 
 body {
@@ -41,6 +43,263 @@ main {
   padding: clamp(1rem, 4vw, 4rem);
   display: grid;
   grid-template-rows: auto 1fr auto;
+}
+
+.hero,
+.instrumentSection,
+.atmosphereSection,
+.workflow {
+  min-height: 100svh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.atmosphereSection {
+  background: #eee8dc;
+  border-bottom: 1px solid var(--line);
+  padding: clamp(3.5rem, 7vw, 6rem) clamp(1rem, 4vw, 4rem);
+}
+
+.atmosphereHeading {
+  align-items: end;
+  display: grid;
+  gap: 1.5rem;
+  margin: 0 auto clamp(1.5rem, 4vw, 3rem);
+  max-width: 90rem;
+}
+
+.atmosphereHeading h2 {
+  font-size: clamp(2rem, 4.8vw, 3.8rem);
+  letter-spacing: -0.035em;
+  margin: 0.7rem 0 0;
+}
+
+.atmosphereHeading > p {
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 34rem;
+}
+
+.atmosphereLayout {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin: 0 auto;
+  max-width: 90rem;
+}
+
+.cloudMapFigure {
+  margin: 0;
+  min-width: 0;
+}
+
+.cloudMapFrame {
+  aspect-ratio: 16 / 9;
+  background: #d9d7cf;
+  border: 1px solid rgb(43 36 31 / 48%);
+  min-height: 18rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.cloudMapCanvas {
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.cloudMapCanvas canvas {
+  display: block;
+}
+
+.cloudMapPlace,
+.cloudMapNorth,
+.cloudMapStatus {
+  background: rgb(238 232 220 / 88%);
+  border: 1px solid rgb(43 36 31 / 28%);
+  font-size: 0.63rem;
+  letter-spacing: 0.1em;
+  padding: 0.36rem 0.48rem;
+  position: absolute;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.cloudMapPlace {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+.cloudMapNorth {
+  right: 0.75rem;
+  top: 0.75rem;
+}
+
+.cloudMapNorth::after {
+  content: "↑";
+  display: block;
+  font-size: 0.85rem;
+  line-height: 0.8;
+  text-align: center;
+}
+
+.cloudMapStatus {
+  bottom: 0.75rem;
+  left: 0.75rem;
+}
+
+.cloudMapEmpty {
+  align-content: center;
+  display: grid;
+  height: 100%;
+  justify-items: center;
+  min-height: 18rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.cloudMapEmpty > span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 5rem;
+  font-weight: 300;
+  line-height: 0.8;
+  opacity: 0.4;
+}
+
+.cloudMapEmpty p {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  margin: 1rem 0 0.35rem;
+}
+
+.cloudMapEmpty small {
+  max-width: 25rem;
+  opacity: 0.66;
+}
+
+.cloudMapFigure figcaption {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  font-size: 0.68rem;
+  gap: 0.4rem;
+  letter-spacing: 0.04em;
+  padding: 0.85rem 0;
+}
+
+.cloudMapUnavailable {
+  line-height: 1.45;
+  max-width: 48rem;
+  opacity: 0.72;
+}
+
+.cloudMapProvenance {
+  font-weight: 600;
+}
+
+.cloudMapCanvas .maplibregl-control-container {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.cloudMapCanvas .maplibregl-ctrl-scale {
+  background: rgb(238 232 220 / 78%);
+  border: 1px solid rgb(43 36 31 / 52%);
+  border-top: 0;
+  color: var(--ink);
+  font-size: 0.58rem;
+  margin: 0 0.75rem 0.75rem 0;
+  padding: 0 0.2rem;
+}
+
+.atmosphereEvidence {
+  align-content: start;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.atmosphereEvidence fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.atmosphereEvidence legend,
+.atmosphereEvidence small {
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+}
+
+.atmosphereEvidence legend {
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+}
+
+.atmosphereEvidence fieldset > small {
+  display: block;
+  margin-top: 0.55rem;
+  opacity: 0.62;
+}
+
+.cloudModeSwitch {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  display: inline-flex;
+  overflow: hidden;
+}
+
+.cloudModeSwitch button {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.cloudModeSwitch button + button {
+  border-left: 1px solid var(--line);
+}
+
+.cloudModeSwitch button[aria-pressed="true"] {
+  background: rgb(43 36 31 / 12%);
+}
+
+.atmosphereEvidence dl,
+.atmosphereEvidence dd {
+  margin: 0;
+}
+
+.atmosphereEvidence dl {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.atmosphereEvidence dl > div {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.65rem;
+}
+
+.atmosphereEvidence dt {
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+  opacity: 0.62;
+  text-transform: uppercase;
+}
+
+.atmosphereEvidence dd {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.atmosphereCaution {
+  border-top: 1px solid var(--line);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin: 0;
+  padding-top: 0.85rem;
 }
 
 .eyebrow,
@@ -360,7 +619,10 @@ h1 {
 
 .instrumentViewSwitch {
   border: 1px solid var(--line);
+  border-radius: 999px;
   display: inline-flex;
+  justify-self: center;
+  overflow: hidden;
 }
 
 .instrumentViewSwitch button {
@@ -370,8 +632,8 @@ h1 {
   cursor: pointer;
   font-size: 0.67rem;
   letter-spacing: 0.1em;
-  min-height: 2.75rem;
-  padding: 0.7rem 1rem;
+  min-height: 2.25rem;
+  padding: 0.42rem 0.9rem;
   text-transform: uppercase;
 }
 
@@ -389,6 +651,76 @@ h1 {
   outline: 0;
   position: relative;
   z-index: 1;
+}
+
+.instrumentSettings {
+  justify-self: center;
+  position: relative;
+  z-index: 5;
+}
+
+.instrumentSettings summary {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.65rem;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  list-style: none;
+  min-height: calc(2.25rem + 2px);
+  padding: 0 0.8rem;
+  text-transform: uppercase;
+}
+
+.instrumentSettings summary::-webkit-details-marker {
+  display: none;
+}
+
+.instrumentSettings > div {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 0.8rem;
+  min-width: 14rem;
+  padding: 1rem;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.45rem);
+}
+
+.instrumentSettings label {
+  display: grid;
+  font-size: 0.68rem;
+  gap: 0.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.instrumentSettingsLabel {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+.instrumentSettings output {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.65;
+}
+
+.instrumentSettings input[type="range"] {
+  accent-color: var(--ink);
+  cursor: pointer;
+  margin: 0;
+  width: 100%;
+}
+
+.instrumentSettings .instrumentSettingsCheck {
+  align-items: center;
+  grid-template-columns: auto 1fr;
+  text-transform: none;
 }
 
 .instrumentFrame {
@@ -417,7 +749,7 @@ h1 {
 }
 
 .atlasScroll {
-  background: #eee7d7;
+  background: #f1ebdd;
   min-width: 0;
   overflow-x: auto;
   padding: 0;
@@ -427,73 +759,76 @@ h1 {
 .atlasSvg {
   display: block;
   height: auto;
-  min-width: 62rem;
+  min-width: 46rem;
   shape-rendering: geometricPrecision;
   text-rendering: geometricPrecision;
   width: 100%;
 }
 
 .atlasFieldGround {
-  fill: #eee7d7;
+  fill: #f1ebdd;
 }
 
 .atlasSector {
   cursor: pointer;
   outline: none;
-  stroke: rgb(36 24 19 / 27%);
-  stroke-width: 0.7;
+  stroke: rgb(36 24 19 / 10%);
+  stroke-width: 0.5;
   vector-effect: non-scaling-stroke;
 }
 
 .atlasSector:hover,
 .atlasSectorSelected,
 .atlasSectorHighlighted {
-  filter: brightness(1.05);
-  stroke: var(--ink);
-  stroke-width: 1.8;
+  stroke: rgb(36 24 19 / 64%);
+  stroke-width: 1;
+}
+
+.atlasSector:hover {
+  stroke: #fffaf0;
 }
 
 .atlasSector:focus-visible {
-  filter: drop-shadow(0 0 2px var(--ink));
-  stroke: #fffaf0;
-  stroke-width: 3;
+  filter: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
 }
 
 .atlasPerimeterCodes {
   fill: var(--ink);
   font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.065em;
 }
 
 .atlasPerimeterCode {
   cursor: pointer;
   outline: none;
   paint-order: stroke fill;
-  stroke: rgb(238 231 215 / 78%);
-  stroke-width: 2.5px;
+  stroke: rgb(241 235 221 / 74%);
+  stroke-width: 1.8px;
 }
 
 .atlasPerimeterCode:hover,
 .atlasPerimeterCodeHighlighted,
 .atlasPerimeterCodeSelected {
-  fill: #fffaf0;
-  font-weight: 800;
-  stroke: var(--ink);
-  stroke-width: 4px;
+  fill: var(--ink);
+  font-weight: 700;
+  stroke: rgb(241 235 221 / 85%);
+  stroke-width: 2.2px;
 }
 
 .atlasPerimeterCode:focus-visible {
-  fill: #fffaf0;
-  filter: drop-shadow(0 0 2px var(--ink));
+  fill: var(--ink);
+  filter: none;
   stroke: var(--ink);
-  stroke-width: 4px;
+  stroke-width: 0.5px;
 }
 
 .atlasAperture {
-  fill: #eee7d7;
-  stroke: rgb(36 24 19 / 64%);
+  fill: #f1ebdd;
+  stroke: rgb(36 24 19 / 48%);
   stroke-width: 1;
 }
 
@@ -521,14 +856,15 @@ h1 {
   fill: none;
   pointer-events: none;
   stroke: var(--ink);
-  stroke-width: 1.4;
+  stroke: #f8f2e7;
+  stroke-width: 2.2;
 }
 
 .atlasCardBorder {
   fill: none;
   pointer-events: none;
-  stroke: rgb(36 24 19 / 55%);
-  stroke-width: 1;
+  stroke: rgb(36 24 19 / 38%);
+  stroke-width: 0.8;
   vector-effect: non-scaling-stroke;
 }
 
@@ -545,21 +881,28 @@ h1 {
 }
 
 .atlasMarker {
-  fill: #fffaf0;
+  fill: rgb(255 250 240 / 84%);
   pointer-events: none;
-  stroke: var(--ink);
-  stroke-width: 2;
+  stroke: #fffaf0;
+  stroke-width: 1.25;
 }
 
 .atlasMarkerControl:hover .atlasMarker,
 .atlasMarkerControl:focus-visible .atlasMarker {
-  stroke-width: 3.5;
+  stroke-width: 2;
 }
 
 .atlasMarkerSelected {
-  fill: var(--ink);
+  fill: #fffaf0;
+  stroke: var(--ink);
+  stroke-width: 2.2;
+}
+
+.atlasMarkerSelectionRing {
+  fill: none;
+  pointer-events: none;
   stroke: #fffaf0;
-  stroke-width: 2.8;
+  stroke-width: 1.2;
 }
 
 .atlasMarkerFocusRing {
@@ -573,6 +916,78 @@ h1 {
 
 .atlasMarkerControl:focus-visible .atlasMarkerFocusRing {
   display: block;
+}
+
+.observationConnector {
+  pointer-events: none;
+  stroke: rgb(36 24 19 / 68%);
+  stroke-dasharray: 2 3;
+  stroke-width: 1.35;
+}
+
+.observationConnectorAtlas {
+  stroke: rgb(255 250 240 / 92%);
+}
+
+.atlasPaletteDebug {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 0.7rem;
+  margin-top: 1rem;
+  padding: 0.8rem;
+}
+
+.atlasPaletteDebug > div {
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+  margin-top: 0.8rem;
+}
+
+.atlasPaletteDebug figure {
+  align-items: center;
+  display: grid;
+  gap: 0.2rem;
+  grid-template-columns: 2rem 1fr 1fr;
+  margin: 0;
+}
+
+.atlasPaletteDebug i {
+  border: 1px solid rgb(36 24 19 / 16%);
+  display: block;
+  height: 1.25rem;
+}
+
+.selectedSunsetPanelAtlas {
+  border-block: 0;
+  display: block;
+  margin: 0;
+  max-width: none;
+  padding: 0;
+}
+
+.selectedSunsetPanelAtlas .selectedSunsetPoetic {
+  border-bottom: 1px solid var(--line);
+  margin: 0;
+  padding: 0 0 1.25rem;
+}
+
+.selectedSunsetPanelAtlas .selectedSunsetEvidence {
+  display: flex;
+  flex-direction: column;
+}
+
+.selectedSunsetPanelAtlas .selectedSunsetEvidence section:nth-child(2) {
+  order: -1;
+}
+
+.selectedSunsetPanelAtlas .selectedSunsetEvidence section {
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 0;
+}
+
+.selectedSunsetPanelAtlas .selectedSunsetEvidence dl {
+  gap: 0.75rem;
 }
 
 .selectedSunsetPanel {
@@ -606,7 +1021,7 @@ h1 {
 
 .selectedSunsetPoetic h3 {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
   font-weight: 400;
   letter-spacing: -0.035em;
   line-height: 1;
@@ -1003,8 +1418,8 @@ h1 {
 }
 
 .sunsetMarkerControl:focus-visible .sunsetMarker {
-  fill: var(--ink);
-  stroke: #fffaf0;
+  fill: #fffaf0;
+  stroke: var(--ink);
 }
 
 .sunsetMarkerFocusRing {
@@ -1059,8 +1474,8 @@ h1 {
 }
 
 .sunsetMarkerSelected {
-  fill: var(--ink);
-  stroke: #fffaf0;
+  fill: #fffaf0;
+  stroke: var(--ink);
   stroke-width: 2.8;
 }
 
@@ -1226,6 +1641,150 @@ footer p {
   .instrumentSectorReadout dl {
     grid-column: 1 / -1;
   }
+
+  .instrumentSectionAtlas .atlasSvg {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 64rem) {
+  .atmosphereHeading {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 32rem);
+  }
+
+  .atmosphereLayout {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 19rem);
+  }
+
+  .instrumentSectionAtlas,
+  .instrumentSectionCircular {
+    min-height: 100svh;
+    padding: 1.25rem clamp(1rem, 2vw, 2rem) 2rem;
+  }
+
+  .instrumentHeadingAtlas,
+  .instrumentHeadingCircular {
+    align-items: center;
+    grid-template-columns: 1fr auto;
+    margin-bottom: 1rem;
+    max-width: 100%;
+    position: relative;
+  }
+
+  .instrumentHeadingAtlas h2,
+  .instrumentHeadingCircular h2 {
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    margin-top: 0.25rem;
+  }
+
+  .instrumentHeadingAtlas .instrumentHeadingAside,
+  .instrumentHeadingCircular .instrumentHeadingAside {
+    align-items: center;
+    display: flex;
+    gap: 1.25rem;
+    justify-self: end;
+  }
+
+  .instrumentHeadingAtlas .instrumentViewSwitch,
+  .instrumentHeadingCircular .instrumentViewSwitch {
+    left: 50%;
+    position: absolute;
+    top: 0.35rem;
+    transform: translateX(-50%);
+  }
+
+  .instrumentHeadingAtlas .instrumentSettings,
+  .instrumentHeadingCircular .instrumentSettings {
+    left: calc(50% + 5.4rem);
+    position: absolute;
+    top: 0.35rem;
+  }
+
+  .instrumentHeadingAtlas .instrumentIntroduction,
+  .instrumentHeadingCircular .instrumentIntroduction {
+    font-size: 0.8rem;
+    max-width: 22rem;
+  }
+
+  .instrumentWorkspaceAtlas {
+    align-items: start;
+    display: grid;
+    gap: clamp(1.25rem, 2vw, 2.25rem);
+    grid-template-areas: "rail field";
+    grid-template-columns: clamp(15rem, 20vw, 20rem) minmax(0, 1fr);
+    max-width: none;
+  }
+
+  .instrumentWorkspaceCircular {
+    align-items: start;
+    display: grid;
+    gap: clamp(1.25rem, 2vw, 2.25rem);
+    grid-template-areas: "rail field";
+    grid-template-columns: clamp(15rem, 20vw, 20rem) minmax(0, 1fr);
+    max-width: none;
+  }
+
+  .instrumentWorkspaceCircular .instrumentFrame {
+    grid-area: field;
+    justify-self: center;
+    margin-inline: auto;
+  }
+
+  .instrumentWorkspaceCircular .instrumentDetails {
+    grid-area: rail;
+    margin: 0;
+    max-width: none;
+    position: static;
+  }
+
+  .instrumentWorkspaceCircular .selectedSunsetPanel {
+    display: block;
+  }
+
+  .instrumentWorkspaceCircular .selectedSunsetEvidence {
+    grid-template-columns: 1fr;
+  }
+
+  .instrumentWorkspaceCircular
+    .instrumentDetails:has(
+      .selectedSunsetPanel:not(.selectedSunsetPanelEmpty)
+    )
+    .instrumentSectorReadout {
+    display: none;
+  }
+
+  .instrumentWorkspaceAtlas .atlasScroll {
+    grid-area: field;
+    overflow: hidden;
+  }
+
+  .instrumentWorkspaceAtlas .atlasSvg {
+    min-width: 0;
+  }
+
+  .instrumentWorkspaceAtlas .instrumentDetails {
+    grid-area: rail;
+    margin: 0;
+    max-width: none;
+    position: static;
+  }
+
+  .instrumentWorkspaceAtlas .instrumentSectorReadout {
+    margin: 0 0 1.2rem;
+  }
+
+  .instrumentWorkspaceAtlas
+    .instrumentDetails:has(
+      .selectedSunsetPanel:not(.selectedSunsetPanelEmpty)
+    )
+    .instrumentSectorReadout {
+    display: none;
+  }
+
+  .instrumentWorkspaceAtlas .instrumentClusterChooser {
+    margin-block: 1rem;
+  }
 }
 
 @media (min-width: 75rem) {
@@ -1245,15 +1804,18 @@ footer p {
     grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
   }
 
-  .instrumentWorkspaceAtlas {
-    display: block;
-    max-width: 96rem;
+  .instrumentWorkspace.instrumentWorkspaceAtlas {
+    gap: clamp(1.25rem, 2vw, 2.25rem);
+    grid-template-areas: "rail field";
+    grid-template-columns: clamp(15rem, 20vw, 20rem) minmax(0, 1fr);
+    max-width: none;
   }
 
-  .instrumentWorkspaceAtlas .instrumentDetails {
-    margin-inline: auto;
-    max-width: 68rem;
-    position: static;
+  .instrumentWorkspace.instrumentWorkspaceCircular {
+    gap: clamp(1.25rem, 2vw, 2.25rem);
+    grid-template-areas: "rail field";
+    grid-template-columns: clamp(15rem, 20vw, 20rem) minmax(0, 1fr);
+    max-width: none;
   }
 
   .instrumentFrame {

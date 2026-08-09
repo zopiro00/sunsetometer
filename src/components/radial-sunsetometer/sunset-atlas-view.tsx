@@ -3,22 +3,28 @@ import type { KeyboardEvent } from "react";
 import type { AnalysedSunset } from "@/domain/analysed-sunset";
 import { SUNSET_COLOUR_TAXONOMY } from "@/domain/sunset-colour-taxonomy";
 import {
+  ATLAS_PAPER_HEX,
+  getAtlasDisplayColour,
+} from "@/lib/colour-analysis/atlas-display-colour";
+import {
   createAnnularSectorPath,
   pointOnCircle,
 } from "@/lib/radial-geometry";
 
 const VIEWBOX_WIDTH = 1200;
 const VIEWBOX_HEIGHT = 760;
-const CENTRE_X = 690;
-const CENTRE_Y = 382;
-const VIEWER_RADIUS = 172;
-const INNER_RADIUS = VIEWER_RADIUS + 4;
+const BASE_VIEWER_RADIUS = 184;
 const OUTER_RADIUS = 1500;
 const ANGLE_OFFSET = -90;
 const SECTOR_ANGLE = 360 / SUNSET_COLOUR_TAXONOMY.length;
-const EDGE_INSET = 25;
+const EDGE_INSET = 28;
+const MARKER_RADIUS = 7.2;
+const MARKER_SELECTION_RADIUS = 15.6;
+const MARKER_FOCUS_RADIUS = 16.8;
 
 type SunsetAtlasViewProps = {
+  apertureScale: number;
+  centreXFraction: number;
   displayedSunset?: AnalysedSunset;
   focusedMarkerId: string;
   focusedSectorId: string;
@@ -41,10 +47,16 @@ type SunsetAtlasViewProps = {
   highlightedSectorId: string | null;
   selectedSunsetId: string | null;
   selectedSectorId: string | null;
+  showObservationLine: boolean;
   sunsets: readonly AnalysedSunset[];
 };
 
-function distanceToFieldEdge(angle: number, inset = EDGE_INSET) {
+function distanceToFieldEdge(
+  angle: number,
+  centreX: number,
+  centreY: number,
+  inset = EDGE_INSET,
+) {
   const radians = (angle * Math.PI) / 180;
   const directionX = Math.cos(radians);
   const directionY = Math.sin(radians);
@@ -54,34 +66,42 @@ function distanceToFieldEdge(angle: number, inset = EDGE_INSET) {
   const maximumY = VIEWBOX_HEIGHT - inset;
   const horizontalDistance =
     directionX > 0
-      ? (maximumX - CENTRE_X) / directionX
+      ? (maximumX - centreX) / directionX
       : directionX < 0
-        ? (minimumX - CENTRE_X) / directionX
+        ? (minimumX - centreX) / directionX
         : Number.POSITIVE_INFINITY;
   const verticalDistance =
     directionY > 0
-      ? (maximumY - CENTRE_Y) / directionY
+      ? (maximumY - centreY) / directionY
       : directionY < 0
-        ? (minimumY - CENTRE_Y) / directionY
+        ? (minimumY - centreY) / directionY
         : Number.POSITIVE_INFINITY;
 
   return Math.min(horizontalDistance, verticalDistance);
 }
 
-function atlasPoint(angle: number, normalisedRadius: number) {
-  const edgeDistance = distanceToFieldEdge(angle, 42);
+function atlasPoint(
+  angle: number,
+  normalisedRadius: number,
+  centreX: number,
+  centreY: number,
+  innerRadius: number,
+) {
+  const edgeDistance = distanceToFieldEdge(angle, centreX, centreY, 42);
   const radius =
-    INNER_RADIUS + normalisedRadius * (edgeDistance - INNER_RADIUS);
+    innerRadius + normalisedRadius * (edgeDistance - innerRadius);
 
   return pointOnCircle({
-    centreX: CENTRE_X,
-    centreY: CENTRE_Y,
+    centreX,
+    centreY,
     radius,
     angle,
   });
 }
 
 export function SunsetAtlasView({
+  apertureScale,
+  centreXFraction,
   displayedSunset,
   focusedMarkerId,
   focusedSectorId,
@@ -96,8 +116,13 @@ export function SunsetAtlasView({
   highlightedSectorId,
   selectedSunsetId,
   selectedSectorId,
+  showObservationLine,
   sunsets,
 }: SunsetAtlasViewProps) {
+  const centreX = VIEWBOX_WIDTH * centreXFraction;
+  const centreY = VIEWBOX_HEIGHT * 0.5;
+  const viewerRadius = BASE_VIEWER_RADIUS * apertureScale;
+  const innerRadius = viewerRadius + 4;
   const sunsetsBySector = new Map<string, AnalysedSunset[]>();
 
   for (const sunset of sunsets) {
@@ -109,6 +134,18 @@ export function SunsetAtlasView({
       sectorSunsets.sort((first, second) => first.id.localeCompare(second.id)),
     );
   }
+  const selectedSunset = sunsets.find(
+    (sunset) => sunset.id === selectedSunsetId,
+  );
+  const selectedPoint = selectedSunset
+    ? atlasPoint(
+        ANGLE_OFFSET + selectedSunset.classification.angle,
+        selectedSunset.classification.radialPosition,
+        centreX,
+        centreY,
+        innerRadius,
+      )
+    : null;
 
   return (
     <div className="atlasScroll" role="region" aria-label="Sunset colour atlas">
@@ -127,20 +164,32 @@ export function SunsetAtlasView({
           chroma.
         </desc>
         <defs>
+          <clipPath id="sunset-atlas-field-clip">
+            <rect
+              height={VIEWBOX_HEIGHT - EDGE_INSET * 2}
+              width={VIEWBOX_WIDTH - EDGE_INSET * 2}
+              x={EDGE_INSET}
+              y={EDGE_INSET}
+            />
+          </clipPath>
           <clipPath id="sunset-atlas-viewer-clip">
-            <circle cx={CENTRE_X} cy={CENTRE_Y} r={VIEWER_RADIUS} />
+            <circle cx={centreX} cy={centreY} r={viewerRadius} />
           </clipPath>
         </defs>
 
         <rect
           className="atlasFieldGround"
+          fill={ATLAS_PAPER_HEX}
           height={VIEWBOX_HEIGHT}
           width={VIEWBOX_WIDTH}
           x={0}
           y={0}
         />
 
-        <g className="atlasSectors">
+        <g
+          className="atlasSectors"
+          clipPath="url(#sunset-atlas-field-clip)"
+        >
           {SUNSET_COLOUR_TAXONOMY.map((sector) => {
             const centreAngle = ANGLE_OFFSET + sector.chromaticAngle;
             const isSelected = selectedSectorId === sector.id;
@@ -158,14 +207,14 @@ export function SunsetAtlasView({
                   .filter(Boolean)
                   .join(" ")}
                 d={createAnnularSectorPath({
-                  centreX: CENTRE_X,
-                  centreY: CENTRE_Y,
-                  innerRadius: INNER_RADIUS,
+                  centreX,
+                  centreY,
+                  innerRadius,
                   outerRadius: OUTER_RADIUS,
                   startAngle: centreAngle - SECTOR_ANGLE / 2,
                   endAngle: centreAngle + SECTOR_ANGLE / 2,
                 })}
-                fill={sector.representativeHex}
+                fill={getAtlasDisplayColour(sector)}
                 id={`instrument-sector-${sector.id}`}
                 key={sector.id}
                 onBlur={() => onSectorPreview(null)}
@@ -193,9 +242,9 @@ export function SunsetAtlasView({
             const isSelected = selectedSectorId === sector.id;
             const isHighlighted = highlightedSectorId === sector.id;
             const labelPoint = pointOnCircle({
-              centreX: CENTRE_X,
-              centreY: CENTRE_Y,
-              radius: distanceToFieldEdge(angle, 14),
+              centreX,
+              centreY,
+              radius: distanceToFieldEdge(angle, centreX, centreY, 10),
               angle,
             });
 
@@ -237,6 +286,33 @@ export function SunsetAtlasView({
         </g>
 
         <g className="atlasMarkers">
+          {showObservationLine && selectedPoint ? (
+            <line
+              aria-hidden="true"
+              className="observationConnector observationConnectorAtlas"
+              x1={selectedPoint.x}
+              y1={selectedPoint.y}
+              x2={
+                centreX +
+                ((selectedPoint.x - centreX) /
+                  Math.hypot(
+                    selectedPoint.x - centreX,
+                    selectedPoint.y - centreY,
+                  )) *
+                  viewerRadius
+              }
+              y2={
+                centreY +
+                ((selectedPoint.y - centreY) /
+                  Math.hypot(
+                    selectedPoint.x - centreX,
+                    selectedPoint.y - centreY,
+                  )) *
+                  viewerRadius
+              }
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
           {sunsets.map((sunset, index) => {
             const sector = SUNSET_COLOUR_TAXONOMY.find(
               (candidate) =>
@@ -251,6 +327,9 @@ export function SunsetAtlasView({
             const point = atlasPoint(
               angle,
               sunset.classification.radialPosition,
+              centreX,
+              centreY,
+              innerRadius,
             );
             const sectorSunsets =
               sunsetsBySector.get(sunset.classification.sectorId) ?? [];
@@ -296,6 +375,16 @@ export function SunsetAtlasView({
                   r={9}
                   vectorEffect="non-scaling-stroke"
                 />
+                {isSelected ? (
+                  <circle
+                    aria-hidden="true"
+                    className="atlasMarkerSelectionRing"
+                    cx={x}
+                    cy={y}
+                    r={MARKER_SELECTION_RADIUS}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                ) : null}
                 <circle
                   aria-hidden="true"
                   className={
@@ -305,7 +394,7 @@ export function SunsetAtlasView({
                   }
                   cx={x}
                   cy={y}
-                  r={isSelected ? 7.5 : 5.5}
+                  r={MARKER_RADIUS}
                   vectorEffect="non-scaling-stroke"
                 />
                 <circle
@@ -313,7 +402,7 @@ export function SunsetAtlasView({
                   className="atlasMarkerFocusRing"
                   cx={x}
                   cy={y}
-                  r={14}
+                  r={MARKER_FOCUS_RADIUS}
                   vectorEffect="non-scaling-stroke"
                 />
               </g>
@@ -323,21 +412,21 @@ export function SunsetAtlasView({
 
         <circle
           className="atlasAperture"
-          cx={CENTRE_X}
-          cy={CENTRE_Y}
-          r={VIEWER_RADIUS}
+          cx={centreX}
+          cy={centreY}
+          r={viewerRadius}
         />
         {displayedSunset ? (
           <image
             aria-hidden="true"
             className="atlasViewerImage"
             clipPath="url(#sunset-atlas-viewer-clip)"
-            height={VIEWER_RADIUS * 2}
+            height={viewerRadius * 2}
             href={displayedSunset.image}
             preserveAspectRatio="xMidYMid slice"
-            width={VIEWER_RADIUS * 2}
-            x={CENTRE_X - VIEWER_RADIUS}
-            y={CENTRE_Y - VIEWER_RADIUS}
+            width={viewerRadius * 2}
+            x={centreX - viewerRadius}
+            y={centreY - viewerRadius}
           />
         ) : (
           <g
@@ -345,13 +434,13 @@ export function SunsetAtlasView({
             className="atlasApertureLabel"
             textAnchor="middle"
           >
-            <text x={CENTRE_X} y={CENTRE_Y - 4}>
+            <text x={centreX} y={centreY - 4}>
               Select a sunset
             </text>
             <text
               className="atlasApertureSubline"
-              x={CENTRE_X}
-              y={CENTRE_Y + 23}
+              x={centreX}
+              y={centreY + 23}
             >
               Choose an observation
             </text>
@@ -360,20 +449,34 @@ export function SunsetAtlasView({
         <circle
           aria-hidden="true"
           className="atlasApertureRim"
-          cx={CENTRE_X}
-          cy={CENTRE_Y}
-          r={VIEWER_RADIUS}
+          cx={centreX}
+          cy={centreY}
+          r={viewerRadius}
           vectorEffect="non-scaling-stroke"
         />
         <rect
           aria-hidden="true"
           className="atlasCardBorder"
-          height={VIEWBOX_HEIGHT - 10}
-          width={VIEWBOX_WIDTH - 10}
-          x={5}
-          y={5}
+          height={VIEWBOX_HEIGHT - EDGE_INSET * 2}
+          width={VIEWBOX_WIDTH - EDGE_INSET * 2}
+          x={EDGE_INSET}
+          y={EDGE_INSET}
         />
       </svg>
+      {process.env.NODE_ENV === "development" ? (
+        <details className="atlasPaletteDebug">
+          <summary>Development: compare canonical and Atlas colours</summary>
+          <div>
+            {SUNSET_COLOUR_TAXONOMY.map((sector) => (
+              <figure key={sector.id}>
+                <span>{sector.code}</span>
+                <i style={{ backgroundColor: sector.representativeHex }} />
+                <i style={{ backgroundColor: getAtlasDisplayColour(sector) }} />
+              </figure>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

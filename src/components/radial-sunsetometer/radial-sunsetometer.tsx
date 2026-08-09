@@ -23,15 +23,15 @@ import { resolveMarkerCollisions } from "@/lib/marker-collisions";
 
 const VIEWBOX_SIZE = SUNSETOMETER_VIEWBOX_SIZE;
 const CENTRE = VIEWBOX_SIZE / 2;
-const INNER_RADIUS = DEFAULT_INSTRUMENT_POSITION_OPTIONS.innerRadius;
+const BASE_INNER_RADIUS = DEFAULT_INSTRUMENT_POSITION_OPTIONS.innerRadius;
 const OUTER_RADIUS = DEFAULT_INSTRUMENT_POSITION_OPTIONS.outerRadius;
-const VIEWER_RADIUS = INNER_RADIUS - 5;
+const BASE_VIEWER_RADIUS = BASE_INNER_RADIUS - 5;
 const LABEL_RADIUS = 438;
 const FAMILY_LABEL_RADIUS = 472;
 const SECTOR_ANGLE = 360 / SUNSET_COLOUR_TAXONOMY.length;
 const ANGLE_OFFSET = DEFAULT_INSTRUMENT_POSITION_OPTIONS.angleOffset;
 const MARKER_RADIUS = 6;
-const SELECTED_MARKER_RADIUS = 8;
+const SELECTED_MARKER_RADIUS = MARKER_RADIUS;
 const MARKER_HIT_RADIUS = 8;
 const VIEW_MODE_SESSION_KEY = "sunsetometer-instrument-view";
 const PERIMETER_LABELS = new Map(
@@ -54,6 +54,9 @@ export function RadialSunsetometer({
   onRename,
 }: RadialSunsetometerProps) {
   const [viewMode, setViewMode] = useState<InstrumentViewMode>("circular");
+  const [apertureScale, setApertureScale] = useState(1);
+  const [atlasPosition, setAtlasPosition] = useState(0.66);
+  const [showObservationLine, setShowObservationLine] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [selectedSectorId, setSelectedSectorId] = useState<string | null>(null);
   const [previewSectorId, setPreviewSectorId] = useState<string | null>(null);
@@ -67,10 +70,12 @@ export function RadialSunsetometer({
     id: string;
     status: "loaded" | "error";
   } | null>(null);
+  const innerRadius = BASE_INNER_RADIUS * apertureScale;
+  const viewerRadius = BASE_VIEWER_RADIUS * apertureScale;
   const positionedSunsets = useMemo(() => {
     const truePositions = sunsets.map((sunset) => ({
       sunset,
-      position: sunsetToInstrumentPosition(sunset),
+      position: sunsetToInstrumentPosition(sunset, { innerRadius }),
     }));
     const collisionPositions = new Map(
       resolveMarkerCollisions(
@@ -91,7 +96,7 @@ export function RadialSunsetometer({
 
       return { ...entry, displayPosition };
     });
-  }, [sunsets]);
+  }, [innerRadius, sunsets]);
   const selected = positionedSunsets.find(
     ({ sunset }) => sunset.id === selectedSunsetId,
   );
@@ -235,14 +240,31 @@ export function RadialSunsetometer({
   }
 
   return (
-    <section className="instrumentSection" aria-labelledby="instrument-title">
-      <div className="instrumentHeading">
+    <section
+      className={
+        viewMode === "atlas"
+          ? "instrumentSection instrumentSectionAtlas"
+          : "instrumentSection instrumentSectionCircular"
+      }
+      aria-labelledby="instrument-title"
+    >
+      <div
+        className={
+          viewMode === "atlas"
+            ? "instrumentHeading instrumentHeadingAtlas"
+            : "instrumentHeading instrumentHeadingCircular"
+        }
+      >
         <div>
           <p className="sectionLabel">Chromatic classification instrument</p>
-          <h2 id="instrument-title">The sunset colour field</h2>
+          <h2 id="instrument-title">
+            {viewMode === "atlas"
+              ? "Sunsetometer Atlas"
+              : "Sunsetometer Circular"}
+          </h2>
         </div>
         <div className="instrumentHeadingAside">
-          <p>
+          <p className="instrumentIntroduction">
             The colour field is the measuring scale and the dots are sunset
             observations. Circular and Atlas views show the same classifications
             in two arrangements.
@@ -267,6 +289,51 @@ export function RadialSunsetometer({
               Atlas
             </button>
           </div>
+          <details className="instrumentSettings">
+            <summary>Options</summary>
+            <div>
+              <label>
+                <span className="instrumentSettingsLabel">
+                  Circle size
+                  <output>{Math.round(apertureScale * 100)}%</output>
+                </span>
+                <input
+                  aria-label="Circle size"
+                  max="1.2"
+                  min="0.8"
+                  onChange={(event) => setApertureScale(Number(event.target.value))}
+                  step="0.01"
+                  type="range"
+                  value={apertureScale}
+                />
+              </label>
+              {viewMode === "atlas" ? (
+                <label>
+                  <span className="instrumentSettingsLabel">
+                    Circle position
+                    <output>{Math.round(atlasPosition * 100)}%</output>
+                  </span>
+                  <input
+                    aria-label="Circle position in Atlas"
+                    max="0.78"
+                    min="0.55"
+                    onChange={(event) => setAtlasPosition(Number(event.target.value))}
+                    step="0.01"
+                    type="range"
+                    value={atlasPosition}
+                  />
+                </label>
+              ) : null}
+              <label className="instrumentSettingsCheck">
+                <input
+                  checked={showObservationLine}
+                  onChange={(event) => setShowObservationLine(event.target.checked)}
+                  type="checkbox"
+                />
+                Connect dot to image
+              </label>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -274,7 +341,7 @@ export function RadialSunsetometer({
         className={
           viewMode === "atlas"
             ? "instrumentWorkspace instrumentWorkspaceAtlas"
-            : "instrumentWorkspace"
+            : "instrumentWorkspace instrumentWorkspaceCircular"
         }
       >
         {viewMode === "circular" ? (
@@ -295,7 +362,7 @@ export function RadialSunsetometer({
           </desc>
           <defs>
             <clipPath id="sunsetometer-viewer-clip">
-              <circle cx={CENTRE} cy={CENTRE} r={VIEWER_RADIUS} />
+              <circle cx={CENTRE} cy={CENTRE} r={viewerRadius} />
             </clipPath>
           </defs>
 
@@ -326,7 +393,7 @@ export function RadialSunsetometer({
                   d={createAnnularSectorPath({
                     centreX: CENTRE,
                     centreY: CENTRE,
-                    innerRadius: INNER_RADIUS,
+                    innerRadius,
                     outerRadius: OUTER_RADIUS,
                     startAngle,
                     endAngle,
@@ -357,13 +424,13 @@ export function RadialSunsetometer({
             className="instrumentGuide instrumentInnerBoundary"
             cx={CENTRE}
             cy={CENTRE}
-            r={INNER_RADIUS}
+            r={innerRadius}
           />
           <circle
             className="instrumentOpening"
             cx={CENTRE}
             cy={CENTRE}
-            r={VIEWER_RADIUS}
+            r={viewerRadius}
           />
 
           {displayed && displayedImageStatus !== "error" ? (
@@ -372,7 +439,7 @@ export function RadialSunsetometer({
                 aria-hidden="true"
                 className="instrumentViewerImage"
                 clipPath="url(#sunsetometer-viewer-clip)"
-                height={VIEWER_RADIUS * 2}
+                height={viewerRadius * 2}
                 href={displayed.sunset.image}
                 key={displayed.sunset.id}
                 onError={() =>
@@ -388,9 +455,9 @@ export function RadialSunsetometer({
                   })
                 }
                 preserveAspectRatio="xMidYMid slice"
-                width={VIEWER_RADIUS * 2}
-                x={CENTRE - VIEWER_RADIUS}
-                y={CENTRE - VIEWER_RADIUS}
+                width={viewerRadius * 2}
+                x={CENTRE - viewerRadius}
+                y={CENTRE - viewerRadius}
               />
             </g>
           ) : null}
@@ -424,7 +491,7 @@ export function RadialSunsetometer({
             className="instrumentViewerRim"
             cx={CENTRE}
             cy={CENTRE}
-            r={VIEWER_RADIUS}
+            r={viewerRadius}
             vectorEffect="non-scaling-stroke"
           />
 
@@ -500,6 +567,33 @@ export function RadialSunsetometer({
           </g>
 
           <g className="sunsetMarkers">
+            {showObservationLine && selected ? (
+              <line
+                aria-hidden="true"
+                className="observationConnector"
+                x1={selected.displayPosition.displayX}
+                y1={selected.displayPosition.displayY}
+                x2={
+                  CENTRE +
+                  ((selected.displayPosition.displayX - CENTRE) /
+                    Math.hypot(
+                      selected.displayPosition.displayX - CENTRE,
+                      selected.displayPosition.displayY - CENTRE,
+                    )) *
+                    viewerRadius
+                }
+                y2={
+                  CENTRE +
+                  ((selected.displayPosition.displayY - CENTRE) /
+                    Math.hypot(
+                      selected.displayPosition.displayX - CENTRE,
+                      selected.displayPosition.displayY - CENTRE,
+                    )) *
+                    viewerRadius
+                }
+                vectorEffect="non-scaling-stroke"
+              />
+            ) : null}
             <g aria-hidden="true" className="sunsetMarkerLeaders">
               {positionedSunsets.filter(
                 ({ displayPosition }) => displayPosition.isDisplaced,
@@ -628,6 +722,8 @@ export function RadialSunsetometer({
           </div>
         ) : (
           <SunsetAtlasView
+            apertureScale={apertureScale}
+            centreXFraction={atlasPosition}
             displayedSunset={displayed?.sunset}
             focusedMarkerId={focusedId}
             focusedSectorId={focusedSectorId}
@@ -658,6 +754,7 @@ export function RadialSunsetometer({
             onSectorSelect={setSelectedSectorId}
             selectedSunsetId={selectedSunsetId}
             selectedSectorId={selectedSectorId}
+            showObservationLine={showObservationLine}
             sunsets={sunsets}
           />
         )}
@@ -719,6 +816,7 @@ export function RadialSunsetometer({
           <SelectedSunsetPanel
             onRename={onRename}
             sunset={selected?.sunset}
+            variant={viewMode === "atlas" ? "atlas" : "default"}
           />
         </div>
       </div>

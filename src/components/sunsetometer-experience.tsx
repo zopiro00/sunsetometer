@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RadialSunsetometer } from "@/components/radial-sunsetometer/radial-sunsetometer";
+import { AtmosphereSection } from "@/components/atmosphere/atmosphere-section";
 import { SkyAnalysisDebug } from "@/components/sky-analysis-debug";
 import { SkyRegionSelector } from "@/components/sky-region-selector";
 import { MOCK_ANALYSED_SUNSETS } from "@/data/mock-analysed-sunsets";
@@ -226,6 +227,7 @@ export function SunsetometerExperience() {
         selectedSunsetId={selectedSunsetId}
         sunsets={sunsets}
       />
+      <AtmosphereSection selectedSunset={selectedSunset} />
       {DEMO_MODE ? (
         <SkyAnalysisDebug analysis={selectedSunset?.skyAnalysis} />
       ) : null}

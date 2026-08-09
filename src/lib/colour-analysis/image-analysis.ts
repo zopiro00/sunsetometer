@@ -202,14 +202,20 @@ function clusterSkyPixels(pixels: readonly AnalysedPixel[]): Cluster[] {
       const centre = averageLab(clusterPixels);
       const chroma = Math.hypot(centre.a, centre.b);
       const populationShare = clusterPixels.length / pixels.length;
-      const chromaticWeight = 0.78 + 0.22 * clamp(chroma / 0.18);
+      // A sunset's perceptual identity is often carried by a warm, chromatic
+      // horizon band rather than the largest neutral cloud or blue-sky area.
+      // Square-root population weighting keeps the cluster representative,
+      // while chromatic salience prevents a broad grey field from masking the
+      // colour a viewer reads as the sunset's primary sky colour.
+      const populationWeight = Math.sqrt(populationShare);
+      const chromaticWeight = 0.15 + 0.85 * clamp(chroma / 0.15);
       const lightnessWeight =
         centre.l < 0.35 ? 0.78 + centre.l * 0.6 : 1;
 
       return {
         centre,
         pixels: clusterPixels,
-        score: populationShare * chromaticWeight * lightnessWeight,
+        score: populationWeight * chromaticWeight * lightnessWeight,
       };
     })
     .sort((first, second) => second.score - first.score);

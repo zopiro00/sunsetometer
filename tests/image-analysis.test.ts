@@ -77,6 +77,23 @@ describe("analyseSkyPixels", () => {
     expect(result.debug.clusters[0].isPrimary).toBe(true);
   });
 
+  it("selects a chromatic sunset band over a larger neutral cloud field", () => {
+    const result = analyseSkyPixels(
+      syntheticPixels((_x, y) =>
+        y < 13
+          ? { r: 165, g: 163, b: 160 }
+          : { r: 241, g: 139, b: 68 },
+      ),
+      WIDTH,
+      HEIGHT,
+    );
+
+    expect(result.primarySkyColour.rgb.r).toBeGreaterThan(220);
+    expect(result.primarySkyColour.rgb.g).toBeGreaterThan(
+      result.primarySkyColour.rgb.b,
+    );
+  });
+
   it("retains a pale low-saturation sky", () => {
     const result = analyseSkyPixels(
       syntheticPixels(() => ({ r: 196, g: 207, b: 214 })),

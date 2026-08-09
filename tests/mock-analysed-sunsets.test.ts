@@ -52,17 +52,13 @@ describe("mock analyzed sunsets", () => {
     }
   });
 
-  it("contains deliberate exact overlaps without storing coordinates", () => {
-    const positionKeys = MOCK_ANALYSED_SUNSETS.map((sunset) => {
-      const position = sunsetToInstrumentPosition(sunset);
-      return `${position.x.toFixed(4)},${position.y.toFixed(4)}`;
-    });
-    const uniquePositions = new Set(positionKeys);
-
-    expect(uniquePositions.size).toBeLessThan(positionKeys.length);
+  it("uses measured primary sky colours without storing coordinates", () => {
     expect(
       MOCK_ANALYSED_SUNSETS.every(
-        (sunset) => !("x" in sunset) && !("y" in sunset),
+        (sunset) =>
+          sunset.dominantColour === sunset.skyAnalysis.primarySkyColour.hex &&
+          !("x" in sunset) &&
+          !("y" in sunset),
       ),
     ).toBe(true);
   });
