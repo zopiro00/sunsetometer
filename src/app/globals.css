@@ -1,0 +1,1297 @@
+:root {
+  --ink: #241813;
+  --paper: #f3eddf;
+  --paper-deep: #e8deca;
+  --ember: #ad452a;
+  --dusk: #5d4761;
+  --line: rgb(36 24 19 / 24%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 90rem;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.hero {
+  border: 1px solid var(--line);
+  min-height: calc(100vh - 2rem);
+  padding: clamp(1rem, 4vw, 4rem);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.eyebrow,
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.heroCopy {
+  align-self: center;
+  padding-block: 4rem;
+}
+
+.kicker {
+  color: var(--ember);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  margin: 0 0 0.8rem;
+}
+
+h1,
+h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+h1 {
+  font-size: clamp(3.6rem, 15vw, 10rem);
+  letter-spacing: -0.075em;
+  line-height: 0.82;
+  margin: 0;
+  max-width: 8ch;
+}
+
+.introduction {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+  line-height: 1.45;
+  margin: 2rem 0 0;
+  max-width: 37rem;
+}
+
+.pickerShell {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 0.7rem 1.5rem;
+  grid-template-columns: auto 1fr;
+  padding-top: 1.5rem;
+}
+
+.sunMark {
+  border: 1px solid var(--ember);
+  border-radius: 50%;
+  display: grid;
+  grid-row: span 4;
+  height: 5.25rem;
+  overflow: hidden;
+  place-items: center;
+  width: 5.25rem;
+}
+
+.sunMark span {
+  background: var(--ember);
+  display: block;
+  height: 50%;
+  transform: translateY(50%);
+  width: 100%;
+}
+
+.pickerShell h2,
+.pickerShell p {
+  margin: 0;
+}
+
+.pickerShell h2 {
+  font-size: 1.55rem;
+}
+
+.photographPicker {
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  justify-self: start;
+  padding: 0.75rem 1rem;
+}
+
+.photographPicker:focus-within,
+.photographPicker:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.photographPicker[aria-disabled="true"] {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.status {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.demoControl {
+  align-items: center;
+  display: flex;
+  font-size: 0.72rem;
+  gap: 0.45rem;
+}
+
+.demoControl input {
+  accent-color: var(--ember);
+  height: 1rem;
+  width: 1rem;
+}
+
+.skyRegionSelector {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 1.5rem;
+  margin: 0 auto;
+  max-width: 74rem;
+  padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 4rem);
+}
+
+.skyRegionSelector h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin: 0.6rem 0;
+}
+
+.skyRegionSelector p {
+  line-height: 1.5;
+  margin-bottom: 0;
+  max-width: 42rem;
+}
+
+.skyRegionSurface {
+  align-self: start;
+  cursor: crosshair;
+  display: inline-grid;
+  justify-self: start;
+  max-height: 70vh;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+
+.skyRegionSurface img {
+  display: block;
+  height: auto;
+  max-height: 70vh;
+  max-width: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  width: auto;
+}
+
+.skyRegionSelection {
+  background: rgb(243 237 223 / 12%);
+  border: 2px solid #fffaf0;
+  box-shadow: 0 0 0 1px var(--ink);
+  pointer-events: none;
+  position: absolute;
+}
+
+.skyRegionStatus {
+  font-family: Georgia, "Times New Roman", serif;
+  margin: 0;
+}
+
+.skyRegionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.skyRegionActions button {
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.skyRegionActions button:last-child {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.skyRegionActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.skyRegionActions button:focus-visible {
+  outline: 3px solid var(--ember);
+  outline-offset: 3px;
+}
+
+.skyAnalysisDebug {
+  border-block: 1px solid var(--line);
+  margin: 0 auto clamp(4rem, 8vw, 7rem);
+  max-width: 78rem;
+  padding: 1.25rem clamp(1rem, 4vw, 3rem);
+}
+
+.skyAnalysisDebug summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.skyAnalysisDebugGrid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.skyAnalysisDebug figure {
+  margin: 0;
+}
+
+.skyAnalysisDebug img {
+  display: block;
+  height: auto;
+  max-height: 20rem;
+  max-width: 100%;
+}
+
+.skyAnalysisDebug figcaption {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  margin-top: 0.45rem;
+  text-transform: uppercase;
+}
+
+.skyClusterDebug {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.skyClusterDebug > div {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto 1fr;
+  padding-top: 0.6rem;
+}
+
+.skyClusterDebug > div > span {
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  height: 1.6rem;
+  width: 1.6rem;
+}
+
+.skyClusterDebug p {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.skyClusterDebug small {
+  opacity: 0.68;
+}
+
+.skyClusterPrimary {
+  color: var(--ember);
+}
+
+.workflow {
+  padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 4vw, 4rem);
+}
+
+.instrumentSection {
+  border-bottom: 1px solid var(--line);
+  padding: clamp(3.5rem, 7vw, 6rem) clamp(1rem, 4vw, 4rem);
+}
+
+.instrumentHeading {
+  align-items: end;
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+}
+
+.instrumentHeading h2 {
+  font-size: clamp(2rem, 4.8vw, 3.8rem);
+  letter-spacing: -0.035em;
+  margin: 0.7rem 0 0;
+}
+
+.instrumentHeadingAside > p {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 31rem;
+}
+
+.instrumentHeadingAside {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.instrumentViewSwitch {
+  border: 1px solid var(--line);
+  display: inline-flex;
+}
+
+.instrumentViewSwitch button {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.67rem;
+  letter-spacing: 0.1em;
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  text-transform: uppercase;
+}
+
+.instrumentViewSwitch button + button {
+  border-left: 1px solid var(--line);
+}
+
+.instrumentViewSwitch button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.instrumentViewSwitch button:focus-visible {
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+  outline: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.instrumentFrame {
+  aspect-ratio: 1;
+  margin: 0 auto;
+  max-width: 68rem;
+  width: 100%;
+}
+
+.instrumentWorkspace {
+  margin: 0 auto;
+  max-width: 86rem;
+}
+
+.instrumentDetails {
+  min-width: 0;
+}
+
+.instrumentSvg {
+  display: block;
+  height: auto;
+  overflow: visible;
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+  width: 100%;
+}
+
+.atlasScroll {
+  background: #eee7d7;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0;
+  width: 100%;
+}
+
+.atlasSvg {
+  display: block;
+  height: auto;
+  min-width: 62rem;
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+  width: 100%;
+}
+
+.atlasFieldGround {
+  fill: #eee7d7;
+}
+
+.atlasSector {
+  cursor: pointer;
+  outline: none;
+  stroke: rgb(36 24 19 / 27%);
+  stroke-width: 0.7;
+  vector-effect: non-scaling-stroke;
+}
+
+.atlasSector:hover,
+.atlasSectorSelected,
+.atlasSectorHighlighted {
+  filter: brightness(1.05);
+  stroke: var(--ink);
+  stroke-width: 1.8;
+}
+
+.atlasSector:focus-visible {
+  filter: drop-shadow(0 0 2px var(--ink));
+  stroke: #fffaf0;
+  stroke-width: 3;
+}
+
+.atlasPerimeterCodes {
+  fill: var(--ink);
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.atlasPerimeterCode {
+  cursor: pointer;
+  outline: none;
+  paint-order: stroke fill;
+  stroke: rgb(238 231 215 / 78%);
+  stroke-width: 2.5px;
+}
+
+.atlasPerimeterCode:hover,
+.atlasPerimeterCodeHighlighted,
+.atlasPerimeterCodeSelected {
+  fill: #fffaf0;
+  font-weight: 800;
+  stroke: var(--ink);
+  stroke-width: 4px;
+}
+
+.atlasPerimeterCode:focus-visible {
+  fill: #fffaf0;
+  filter: drop-shadow(0 0 2px var(--ink));
+  stroke: var(--ink);
+  stroke-width: 4px;
+}
+
+.atlasAperture {
+  fill: #eee7d7;
+  stroke: rgb(36 24 19 / 64%);
+  stroke-width: 1;
+}
+
+.atlasViewerImage {
+  animation: instrumentViewerReveal 180ms ease-out;
+  pointer-events: none;
+}
+
+.atlasApertureLabel {
+  fill: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.atlasApertureSubline {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.atlasApertureRim {
+  fill: none;
+  pointer-events: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.atlasCardBorder {
+  fill: none;
+  pointer-events: none;
+  stroke: rgb(36 24 19 / 55%);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.atlasMarkerControl {
+  cursor: pointer;
+  outline: none;
+}
+
+.atlasMarkerHitArea {
+  fill: transparent;
+  pointer-events: all;
+  stroke: transparent;
+  stroke-width: 30;
+}
+
+.atlasMarker {
+  fill: #fffaf0;
+  pointer-events: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.atlasMarkerControl:hover .atlasMarker,
+.atlasMarkerControl:focus-visible .atlasMarker {
+  stroke-width: 3.5;
+}
+
+.atlasMarkerSelected {
+  fill: var(--ink);
+  stroke: #fffaf0;
+  stroke-width: 2.8;
+}
+
+.atlasMarkerFocusRing {
+  display: none;
+  fill: none;
+  pointer-events: none;
+  stroke: var(--ink);
+  stroke-dasharray: 2 2;
+  stroke-width: 1.5;
+}
+
+.atlasMarkerControl:focus-visible .atlasMarkerFocusRing {
+  display: block;
+}
+
+.selectedSunsetPanel {
+  border-block: 1px solid var(--line);
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin: clamp(2rem, 5vw, 4rem) auto 0;
+  max-width: 68rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 0;
+}
+
+.selectedSunsetPanelEmpty {
+  display: block;
+}
+
+.selectedSunsetPanelEmpty h3,
+.selectedSunsetPanelEmpty p {
+  margin: 0;
+}
+
+.selectedSunsetPanelEmpty h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 400;
+  margin-block: 0.7rem 0.4rem;
+}
+
+.selectedSunsetPanelEmpty > p:last-child {
+  opacity: 0.7;
+}
+
+.selectedSunsetPoetic h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  margin: 0.75rem 0 0;
+}
+
+.editableSunsetName {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.editableSunsetName h3 {
+  margin: 0.75rem 0 0;
+}
+
+.editableSunsetName h3 button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: text;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.editableSunsetName h3 button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+
+.editableSunsetName h3 button:focus-visible,
+.sunsetNameEditControl:focus-visible,
+.sunsetNameEditor button:focus-visible,
+.sunsetNameEditor input:focus-visible {
+  outline: 3px solid var(--ember);
+  outline-offset: 3px;
+}
+
+.sunsetNameEditControl {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  padding: 0 0 0.2rem;
+  text-transform: uppercase;
+}
+
+.sunsetNameSource {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  margin: 0.15rem 0 0;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.sunsetNameEditor {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.sunsetNameEditor > label {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sunsetNameEditor input {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  min-width: 0;
+  padding: 0.25rem 0;
+  width: min(100%, 18rem);
+}
+
+.sunsetNameEditor > div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sunsetNameEditor button {
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.sunsetNameEditor button:first-child {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.sunsetNameError {
+  color: #8e2f22;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.evidenceLabel {
+  color: var(--ember);
+  font-size: 0.63rem;
+  letter-spacing: 0.13em;
+  margin: 0 0 0.8rem;
+  text-transform: uppercase;
+}
+
+.selectedSunsetEvidence {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.selectedSunsetEvidence section {
+  border-top: 1px solid var(--line);
+  padding-top: 0.9rem;
+}
+
+.selectedSunsetEvidence dl,
+.selectedSunsetEvidence dd {
+  margin: 0;
+}
+
+.selectedSunsetEvidence dl {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.selectedSunsetEvidence dl > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.selectedSunsetEvidence dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  opacity: 0.62;
+  text-transform: uppercase;
+}
+
+.selectedSunsetEvidence dd {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+}
+
+.dominantColourValue {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.dominantColourSwatch {
+  border: 1px solid rgb(36 24 19 / 36%);
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.85rem;
+  width: 0.85rem;
+}
+
+.instrumentSector {
+  cursor: pointer;
+  outline: none;
+  stroke: rgb(36 24 19 / 18%);
+  stroke-width: 0.55;
+}
+
+.instrumentSector:hover,
+.instrumentSector:focus-visible,
+.instrumentSectorSelected {
+  filter: brightness(1.06);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.instrumentSector:focus-visible {
+  filter: brightness(1.06) drop-shadow(0 0 2px var(--ink));
+  stroke: #fffaf0;
+  stroke-width: 3;
+}
+
+.instrumentGuide,
+.instrumentTick,
+.instrumentInnerBoundary {
+  fill: none;
+  stroke: rgb(36 24 19 / 42%);
+  stroke-width: 0.75;
+}
+
+.instrumentGuideOuter {
+  stroke: rgb(36 24 19 / 30%);
+  stroke-width: 0.7;
+}
+
+.instrumentOpening {
+  fill: #f3eddf;
+  stroke: rgb(36 24 19 / 48%);
+  stroke-width: 0.9;
+  vector-effect: non-scaling-stroke;
+}
+
+.instrumentViewerImage {
+  animation: instrumentViewerReveal 180ms ease-out;
+}
+
+.instrumentViewerStatus {
+  fill: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+}
+
+.instrumentViewerStatusDetail {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  opacity: 0.68;
+  text-transform: uppercase;
+}
+
+.instrumentViewerRim {
+  fill: none;
+  pointer-events: none;
+  stroke: rgb(36 24 19 / 74%);
+  stroke-width: 1.1;
+}
+
+@keyframes instrumentViewerReveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.instrumentTick {
+  opacity: 0.54;
+}
+
+.instrumentTickMajor {
+  opacity: 1;
+  stroke-width: 1.2;
+}
+
+.instrumentCode {
+  fill: var(--ink);
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.045em;
+  opacity: 0.68;
+}
+
+.instrumentCodeMajor {
+  font-weight: 700;
+  opacity: 1;
+}
+
+.instrumentFamilyLabel {
+  fill: var(--ink);
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.instrumentSectorReadout {
+  align-items: center;
+  border-block: 1px solid var(--line);
+  display: grid;
+  gap: 0.8rem 1.25rem;
+  grid-template-columns: auto minmax(8rem, 0.7fr) 1fr;
+  margin: clamp(2rem, 5vw, 3rem) auto 0;
+  max-width: 68rem;
+  min-height: 5.5rem;
+  padding: 1rem 0;
+}
+
+.instrumentSectorReadoutEmpty {
+  display: flex;
+}
+
+.instrumentSectorReadoutEmpty p {
+  font-family: Georgia, "Times New Roman", serif;
+  opacity: 0.65;
+}
+
+.instrumentSectorReadout p,
+.instrumentSectorReadout dl,
+.instrumentSectorReadout dd {
+  margin: 0;
+}
+
+.instrumentSectorReadout p {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.instrumentSectorReadout strong {
+  color: var(--ember);
+  font-size: 0.72rem;
+  letter-spacing: 0.11em;
+}
+
+.instrumentSectorReadout p span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+}
+
+.instrumentSectorReadout dl {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.instrumentSectorReadout dt {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.instrumentSectorReadout dd {
+  font-family: Georgia, "Times New Roman", serif;
+  margin-top: 0.2rem;
+}
+
+.instrumentSectorSwatch {
+  border: 1px solid rgb(36 24 19 / 42%);
+  border-radius: 50%;
+  height: 2.35rem;
+  width: 2.35rem;
+}
+
+.instrumentCentreLabel {
+  fill: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+}
+
+.instrumentCentreLabel line {
+  stroke: var(--ember);
+  stroke-width: 1;
+}
+
+.instrumentCentreSubline {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sunsetMarkerControl {
+  cursor: pointer;
+  outline: none;
+  touch-action: manipulation;
+}
+
+.sunsetMarkerHitArea {
+  fill: transparent;
+  pointer-events: all;
+  stroke: transparent;
+  stroke-width: 38;
+}
+
+.sunsetMarker {
+  fill: #fffaf0;
+  pointer-events: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+}
+
+.sunsetMarkerLeader {
+  stroke: rgb(36 24 19 / 45%);
+  stroke-dasharray: 1.5 2;
+  stroke-width: 0.75;
+}
+
+.sunsetMarkerControl:hover .sunsetMarker,
+.sunsetMarkerControl:focus-visible .sunsetMarker {
+  stroke-width: 2.8;
+}
+
+.sunsetMarkerControl:focus-visible .sunsetMarker {
+  fill: var(--ink);
+  stroke: #fffaf0;
+}
+
+.sunsetMarkerFocusRing {
+  display: none;
+  fill: none;
+  pointer-events: none;
+  stroke: var(--ink);
+  stroke-dasharray: 3 3;
+  stroke-width: 2.5;
+}
+
+.sunsetMarkerControl:focus-visible .sunsetMarkerFocusRing {
+  display: block;
+}
+
+.instrumentClusterChooser {
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 0;
+}
+
+.instrumentClusterChooser > p {
+  font-size: 0.63rem;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.7rem;
+  text-transform: uppercase;
+}
+
+.instrumentClusterChooser > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.instrumentClusterChooser button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.instrumentClusterChooser button:hover,
+.instrumentClusterChooser button:focus-visible,
+.instrumentClusterChooser button[aria-pressed="true"] {
+  border-color: var(--ink);
+  outline: 2px solid transparent;
+}
+
+.instrumentClusterChooser button:focus-visible {
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+}
+
+.sunsetMarkerSelected {
+  fill: var(--ink);
+  stroke: #fffaf0;
+  stroke-width: 2.8;
+}
+
+.sunsetMarkerSelectionRing {
+  fill: none;
+  pointer-events: none;
+  stroke: var(--ink);
+  stroke-dasharray: 1.5 2.5;
+  stroke-width: 1.1;
+}
+
+.visuallyHidden {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.sectionLabel {
+  color: var(--ember);
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.workflow h2 {
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  letter-spacing: -0.04em;
+  margin: 1rem 0 3rem;
+}
+
+.workflow ol {
+  border-top: 1px solid var(--line);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow li {
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 2.5rem 1fr;
+  padding: 1.25rem 0;
+}
+
+.workflow li span:first-child {
+  color: var(--ember);
+  font-size: 0.7rem;
+}
+
+.workflow li span:last-child {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 4vw, 2.5rem);
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  line-height: 1.6;
+  margin: 0 clamp(1rem, 4vw, 4rem);
+  padding: 2rem 0 3rem;
+}
+
+footer p {
+  margin: 0;
+  max-width: 32rem;
+}
+
+@media (min-width: 40rem) {
+  main {
+    padding: 1.5rem;
+  }
+
+  .hero {
+    min-height: calc(100vh - 3rem);
+  }
+
+  .pickerShell {
+    grid-template-columns: auto minmax(16rem, 1fr) auto;
+  }
+
+  .sunMark {
+    grid-row: span 2;
+  }
+
+  .photographPicker {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .status {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .demoControl {
+    grid-column: 3;
+    grid-row: 3;
+  }
+
+  .workflow li {
+    grid-template-columns: 4rem 1fr;
+  }
+
+  .instrumentHeading {
+    grid-template-columns: 1fr minmax(18rem, 0.6fr);
+  }
+
+  .selectedSunsetPanel {
+    grid-template-columns: minmax(14rem, 0.7fr) 1.3fr;
+  }
+
+  .selectedSunsetEvidence {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .skyRegionSelector {
+    grid-template-columns: minmax(15rem, 0.55fr) minmax(0, 1fr);
+  }
+
+  .skyRegionSurface {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+  }
+
+  .skyAnalysisDebugGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .instrumentSection {
+    padding-inline: 0;
+  }
+
+  .instrumentHeading,
+  .instrumentDetails {
+    padding-inline: 0.25rem;
+  }
+
+  .instrumentFamilyLabel {
+    display: none;
+  }
+
+  .instrumentCode:not(.instrumentCodeMajor) {
+    display: none;
+  }
+
+  .instrumentCodeMajor {
+    font-size: 22px;
+    letter-spacing: 0;
+  }
+
+  .instrumentSectorReadout {
+    grid-template-columns: auto 1fr;
+  }
+
+  .instrumentSectorReadout dl {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 75rem) {
+  .instrumentSection {
+    padding-inline: clamp(1rem, 2vw, 2rem);
+  }
+
+  .instrumentHeading {
+    margin-inline: auto;
+    max-width: 86rem;
+  }
+
+  .instrumentWorkspace {
+    align-items: start;
+    display: grid;
+    gap: clamp(2rem, 4vw, 4rem);
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
+  }
+
+  .instrumentWorkspaceAtlas {
+    display: block;
+    max-width: 96rem;
+  }
+
+  .instrumentWorkspaceAtlas .instrumentDetails {
+    margin-inline: auto;
+    max-width: 68rem;
+    position: static;
+  }
+
+  .instrumentFrame {
+    margin: 0;
+    max-width: min(68rem, calc(100vh - 3rem));
+  }
+
+  .instrumentSectorReadout,
+  .selectedSunsetPanel {
+    margin-top: 0;
+  }
+
+  .selectedSunsetPanel {
+    display: block;
+  }
+
+  .selectedSunsetPoetic {
+    margin-bottom: 2rem;
+  }
+
+  .selectedSunsetEvidence {
+    grid-template-columns: 1fr;
+  }
+
+  .instrumentDetails {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .instrumentViewerImage {
+    animation: none;
+  }
+}

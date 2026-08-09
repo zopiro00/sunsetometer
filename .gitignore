@@ -1,0 +1,19 @@
+node_modules/
+.npm-cache/
+.next/
+out/
+coverage/
+
+# Generated visual review output
+artifacts/
+
+.env
+.env.local
+.env.*.local
+
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Keep the non-secret configuration template in Git
+!.env.example
