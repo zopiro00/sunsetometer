@@ -65,7 +65,13 @@ export type AnalysedSunset = {
   nameSource: "generated" | "user";
   image: string;
   date: string;
+  captureTimestamp?: string;
   location: string;
+  /** Coordinates rounded before storage so precise EXIF GPS is not retained. */
+  approximateCoordinates?: {
+    latitude: number;
+    longitude: number;
+  };
   dominantColour: string;
   hue: number;
   saturation: number;

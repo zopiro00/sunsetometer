@@ -15,10 +15,14 @@ import {
   isValidCloudField,
   normaliseCloudAmount,
 } from "@/lib/cloud-field";
+import { nasaGibsSatelliteImage } from "@/services/weather";
 
 type CloudFieldMapProps = {
   location: ApproximateMapLocation | null;
   cloudData?: CloudFieldData | null;
+  mode?: "cloud" | "satellite";
+  satelliteDate?: string | null;
+  unavailableMessage?: string;
 };
 
 const topology = landTopologyJson as Topology<{
@@ -29,35 +33,32 @@ const landGeoJson = feature(topology, topology.objects.land);
 function cloudRasterDataUrl(data: CloudFieldData): string {
   const width = data.grid[0].length;
   const height = data.grid.length;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Cloud raster rendering is unavailable");
-  }
-
-  const image = context.createImageData(width, height);
-
-  data.grid.forEach((row, y) => {
-    row.forEach((value, x) => {
-      const offset = (y * width + x) * 4;
+  const cells = data.grid.flatMap((row, y) =>
+    row.map((value, x) => {
       const amount = value === null ? 0 : normaliseCloudAmount(value, data.units);
-      image.data[offset] = 242;
-      image.data[offset + 1] = 238;
-      image.data[offset + 2] = 226;
-      image.data[offset + 3] = value === null ? 0 : Math.round(28 + amount * 112);
-    });
-  });
-  context.putImageData(image, 0, 0);
+      // A fixed neutral scale preserves the measured 0–100% relationship:
+      // clear cells remain nearly transparent and overcast cells become a
+      // cool, denser grey. Colour is intentionally not used as a weather-radar
+      // category.
+      const red = Math.round(246 - amount * 112);
+      const green = Math.round(243 - amount * 101);
+      const blue = Math.round(234 - amount * 82);
+      const opacity = value === null ? 0 : 0.08 + amount * 0.84;
 
-  return canvas.toDataURL("image/png");
+      return `<rect x="${x}" y="${y}" width="1.04" height="1.04" fill="rgb(${red} ${green} ${blue})" fill-opacity="${opacity.toFixed(3)}"/>`;
+    }),
+  ).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><filter id="soft-field" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="0.32"/></filter><g filter="url(#soft-field)">${cells}</g></svg>`;
+
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
 export function CloudFieldMap({
   location,
   cloudData = null,
+  mode = "cloud",
+  satelliteDate = null,
+  unavailableMessage = "Regional cloud field unavailable. No gridded reanalysis or satellite dataset is connected.",
 }: CloudFieldMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapState, setMapState] = useState<"loading" | "ready" | "error">(
@@ -68,6 +69,16 @@ export function CloudFieldMap({
     : null;
   const provenance = useMemo(
     () => validCloudData ? cloudProvenanceLines(validCloudData) : [],
+    [validCloudData],
+  );
+  const satelliteImage = useMemo(
+    () => location && satelliteDate
+      ? nasaGibsSatelliteImage(location, satelliteDate)
+      : null,
+    [location, satelliteDate],
+  );
+  const cloudRaster = useMemo(
+    () => validCloudData ? cloudRasterDataUrl(validCloudData) : null,
     [validCloudData],
   );
 
@@ -107,13 +118,17 @@ export function CloudFieldMap({
               {
                 id: "sea",
                 type: "background",
-                paint: { "background-color": "#d9d7cf" },
+                paint: { "background-color": "rgba(217, 215, 207, 0)" },
               },
               {
                 id: "land",
                 type: "fill",
                 source: "land",
-                paint: { "fill-color": "#e9e0cf" },
+                paint: {
+                  "fill-color": mode === "satellite"
+                    ? "rgba(233, 224, 207, 0.08)"
+                    : "rgba(233, 224, 207, 0.18)",
+                },
               },
               {
                 id: "coastline",
@@ -137,30 +152,21 @@ export function CloudFieldMap({
             return;
           }
 
-          if (validCloudData) {
-            const [west, south, east, north] = validCloudData.bounds;
-            map.addSource("cloud-field", {
-              type: "image",
-              url: cloudRasterDataUrl(validCloudData),
-              coordinates: [
-                [west, north],
-                [east, north],
-                [east, south],
-                [west, south],
+          if (mode === "satellite" && satelliteDate) {
+            const satellite = nasaGibsSatelliteImage(mapLocation, satelliteDate);
+            map.fitBounds(
+              [
+                [satellite.bounds[0], satellite.bounds[1]],
+                [satellite.bounds[2], satellite.bounds[3]],
               ],
-            });
-            map.addLayer(
-              {
-                id: "cloud-field",
-                type: "raster",
-                source: "cloud-field",
-                paint: {
-                  "raster-opacity": 0.68,
-                  "raster-resampling": "linear",
-                },
-              },
-              "coastline",
+              { animate: false, padding: 0 },
             );
+          } else if (validCloudData) {
+            const [west, south, east, north] = validCloudData.bounds;
+            map.fitBounds([[west, south], [east, north]], {
+              animate: false,
+              padding: 0,
+            });
           }
 
           map.addSource("observation", {
@@ -231,16 +237,65 @@ export function CloudFieldMap({
       disposed = true;
       map?.remove();
     };
-  }, [location, validCloudData]);
+  }, [location, mode, satelliteDate, validCloudData]);
 
   return (
     <figure className="cloudMapFigure">
       <div className="cloudMapFrame">
         {location ? (
           <>
+            {mode === "satellite" && satelliteImage ? (
+              // The dated WMS URL is already a provider-rendered raster and
+              // must not be passed through Next.js image optimisation.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                alt=""
+                aria-hidden="true"
+                className="cloudMapSatelliteImage"
+                src={satelliteImage.url}
+              />
+            ) : null}
+            {mode === "cloud" && cloudRaster ? (
+              // This DOM raster is deliberate: some browsers do not composite
+              // MapLibre image sources reliably in a WebGL canvas. Geography,
+              // coastlines and observation marks remain MapLibre layers above.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                alt=""
+                aria-hidden="true"
+                className="cloudMapFieldImage"
+                src={cloudRaster}
+              />
+            ) : null}
             <div aria-hidden="true" className="cloudMapCanvas" ref={mapContainer} />
+            <svg
+              aria-hidden="true"
+              className="cloudMapObservationOverlay"
+              preserveAspectRatio="none"
+              viewBox="0 0 100 100"
+            >
+              {location.solarAzimuth === undefined ? null : (
+                <line
+                  className="cloudMapSolarDirection"
+                  x1="50"
+                  x2={50 + Math.sin(location.solarAzimuth * Math.PI / 180) * 19}
+                  y1="50"
+                  y2={50 - Math.cos(location.solarAzimuth * Math.PI / 180) * 19}
+                />
+              )}
+              <circle className="cloudMapObservationHalo" cx="50" cy="50" r="1.45" />
+              <circle className="cloudMapObservationPoint" cx="50" cy="50" r="0.72" />
+            </svg>
             <span aria-hidden="true" className="cloudMapNorth">N</span>
             <span className="cloudMapPlace">{location.placeName}</span>
+            {mode === "cloud" && validCloudData ? (
+              <span className="cloudMapLegend">
+                <span>Cloud amount</span>
+                <span aria-hidden="true" className="cloudMapLegendScale" />
+                <span>0</span>
+                <span>100%</span>
+              </span>
+            ) : null}
             {mapState === "loading" ? (
               <span className="cloudMapStatus">Drawing geography…</span>
             ) : null}
@@ -269,12 +324,16 @@ export function CloudFieldMap({
         ) : (
           <span>No geographical evidence is available for this photograph.</span>
         )}
-        {validCloudData ? (
+        {mode === "satellite" && satelliteDate ? (
+          <span className="cloudMapProvenance">
+            Satellite · NASA/NOAA-20 VIIRS · {satelliteDate} · daily daytime
+            overpass · acquisition time varies across the swath
+          </span>
+        ) : validCloudData ? (
           <span className="cloudMapProvenance">{provenance.join(" · ")}</span>
         ) : (
           <span className="cloudMapUnavailable">
-            Regional cloud field unavailable. No gridded reanalysis or satellite
-            dataset is connected; a single point value is not drawn as a field.
+            {unavailableMessage}
           </span>
         )}
       </figcaption>

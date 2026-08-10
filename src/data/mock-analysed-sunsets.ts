@@ -31,6 +31,45 @@ type MeasuredSkyFixture = {
   confidence: number;
 };
 
+type DemoPhotoMetadata = {
+  capturedAt: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+};
+
+/**
+ * Capture evidence read from the embedded EXIF in public/test-sunsets.
+ * Coordinates are deliberately rounded to two decimals before entering the
+ * application dataset; the precise GPS values are not retained or displayed.
+ */
+const DEMO_PHOTO_METADATA: readonly DemoPhotoMetadata[] = [
+  { capturedAt: "2026-07-07T19:03:46Z", location: "Madrid region, Spain", latitude: 40.48, longitude: -3.48 },
+  { capturedAt: "2023-11-10T16:40:09Z", location: "Mojácar region, Spain", latitude: 37.04, longitude: -1.87 },
+  { capturedAt: "2024-08-22T19:00:48Z", location: "Almería coast, Spain", latitude: 37.23, longitude: -1.8 },
+  { capturedAt: "2025-06-24T04:53:24Z", location: "Madrid region, Spain", latitude: 40.53, longitude: -3.49 },
+  { capturedAt: "2023-01-17T07:50:24Z", location: "Oban region, Scotland", latitude: 56.42, longitude: -5.48 },
+  { capturedAt: "2026-04-08T18:26:39Z", location: "Rotterdam region, Netherlands", latitude: 51.93, longitude: 4.48 },
+  { capturedAt: "2026-06-10T19:47:34Z", location: "Rotterdam, Netherlands", latitude: 51.89, longitude: 4.49 },
+  { capturedAt: "2026-06-23T18:40:14Z", location: "Rotterdam region, Netherlands", latitude: 51.9, longitude: 4.53 },
+  { capturedAt: "2026-07-07T19:03:48Z", location: "Madrid region, Spain", latitude: 40.48, longitude: -3.48 },
+  { capturedAt: "2023-11-08T07:50:41Z", location: "Almería coast, Spain", latitude: 37.16, longitude: -1.83 },
+  { capturedAt: "2023-11-10T16:40:10Z", location: "Mojácar region, Spain", latitude: 37.04, longitude: -1.87 },
+  { capturedAt: "2023-11-10T16:42:09Z", location: "Mojácar region, Spain", latitude: 37.04, longitude: -1.87 },
+  { capturedAt: "2026-07-21T19:26:10Z", location: "Rotterdam, Netherlands", latitude: 51.89, longitude: 4.49 },
+  { capturedAt: "2026-07-29T19:01:58Z", location: "Almería coast, Spain", latitude: 37.14, longitude: -1.86 },
+  { capturedAt: "2022-11-09T15:27:42Z", location: "London, United Kingdom", latitude: 51.48, longitude: -0.17 },
+  { capturedAt: "2025-03-27T18:48:26Z", location: "Madrid region, Spain", latitude: 40.54, longitude: -3.48 },
+  { capturedAt: "2022-11-20T14:46:27Z", location: "London, United Kingdom", latitude: 51.51, longitude: -0.19 },
+  { capturedAt: "2022-11-20T14:46:33Z", location: "London, United Kingdom", latitude: 51.51, longitude: -0.19 },
+  { capturedAt: "2025-04-22T18:28:53Z", location: "Madrid region, Spain", latitude: 40.54, longitude: -3.48 },
+  { capturedAt: "2025-05-28T19:22:06Z", location: "Rotterdam, Netherlands", latitude: 51.89, longitude: 4.49 },
+  { capturedAt: "2025-06-20T19:59:49Z", location: "Rotterdam, Netherlands", latitude: 51.89, longitude: 4.49 },
+  { capturedAt: "2025-06-24T04:39:45Z", location: "Madrid region, Spain", latitude: 40.53, longitude: -3.49 },
+  { capturedAt: "2025-06-24T04:52:34Z", location: "Madrid region, Spain", latitude: 40.53, longitude: -3.49 },
+  { capturedAt: "2025-06-24T04:52:37Z", location: "Madrid region, Spain", latitude: 40.53, longitude: -3.49 },
+];
+
 /**
  * Measurements from the real demo photographs. Each region was selected to
  * contain sky (or, for sunset-08, the sunlit water specimen) and avoid the
@@ -93,7 +132,9 @@ function colourMeasurement(hex: `#${string}`, confidence: number) {
 
 function imagePath(index: number): string {
   const extension = index === 17 || index === 18 ? "jpg" : "jpeg";
-  return `/test-sunsets/sunset-${String(index).padStart(2, "0")}.${extension}`;
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+  return `${basePath}/test-sunsets/sunset-${String(index).padStart(2, "0")}.${extension}`;
 }
 
 function createMockSunset(
@@ -101,6 +142,7 @@ function createMockSunset(
   index: number,
 ): MockAnalysedSunset {
   const analysis = MEASURED_SKY_FIXTURES[index];
+  const photoMetadata = DEMO_PHOTO_METADATA[index];
   const primarySkyColour = colourMeasurement(
     analysis.primary,
     analysis.confidence,
@@ -121,8 +163,18 @@ function createMockSunset(
     displayName: definition.displayName,
     nameSource: "generated",
     image: imagePath(index + 1),
-    date: definition.date,
-    location: definition.location,
+    date: new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(photoMetadata.capturedAt)),
+    captureTimestamp: photoMetadata.capturedAt,
+    location: photoMetadata.location,
+    approximateCoordinates: {
+      latitude: photoMetadata.latitude,
+      longitude: photoMetadata.longitude,
+    },
     ...measured,
     secondaryColourFamily: findNearestSector(secondarySkyColour.hex).family,
     minutesFromSunset: definition.minutesFromSunset,

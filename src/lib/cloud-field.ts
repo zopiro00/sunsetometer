@@ -48,12 +48,22 @@ export function cloudProvenanceLines(data: CloudFieldData): string[] {
     timeZone: "UTC",
   }).format(new Date(data.timestamp));
 
-  return [
+  const lines = [
     label,
     data.source,
     `${timestamp} UTC`,
     data.spatialResolution ?? "Resolution not supplied",
   ];
+
+  if (data.temporalResolution) {
+    lines.push(data.temporalResolution);
+  }
+
+  if (data.closestToCaptureMinutes !== undefined) {
+    lines.push(`nearest analysis: ${data.closestToCaptureMinutes} min`);
+  }
+
+  return lines;
 }
 
 export function destinationPoint(

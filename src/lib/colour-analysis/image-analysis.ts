@@ -6,6 +6,7 @@ import type {
   SkyColourMeasurement,
   SkyRegion,
 } from "@/domain/analysed-sunset";
+import { readLocalPhotographMetadata } from "@/lib/photograph-metadata";
 import type { RgbColour } from "@/domain/sunset-colour";
 import { createInstrumentClassification } from "@/lib/colour-analysis/instrument-classification";
 import {
@@ -411,6 +412,7 @@ export async function analyseSunsetFile(
   }
 
   validateSkyRegion(region);
+  const photographMetadata = await readLocalPhotographMetadata(file);
   const bitmap = await createImageBitmap(file);
   const sourceX = Math.round(region.x * bitmap.width);
   const sourceY = Math.round(region.y * bitmap.height);
@@ -492,8 +494,14 @@ export async function analyseSunsetFile(
     displayName,
     nameSource: "generated",
     image: imageUrl,
-    date: photographDate(file.lastModified),
-    location: "Location unavailable",
+    date: photographDate(
+      photographMetadata.capturedAt?.valueOf() ?? file.lastModified,
+    ),
+    captureTimestamp: photographMetadata.capturedAt?.toISOString(),
+    location: photographMetadata.approximateCoordinates
+      ? "Approximate photograph location"
+      : "Location unavailable",
+    approximateCoordinates: photographMetadata.approximateCoordinates ?? undefined,
     dominantColour: primary.hex,
     hue: primary.hue,
     saturation: clamp(primary.chroma / 0.25),
