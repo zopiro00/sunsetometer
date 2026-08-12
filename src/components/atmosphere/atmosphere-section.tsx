@@ -3,10 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { CloudFieldMap } from "@/components/atmosphere/cloud-field-map";
+import { CloudReading } from "@/components/atmosphere/cloud-reading";
+import { LightReading } from "@/components/atmosphere/light-reading";
+import { AtmosphereReading } from "@/components/atmosphere/atmosphere-reading";
+import { AtmosphericTimeline } from "@/components/atmosphere/atmospheric-timeline";
+import { AtmosphericInterpretationStrip } from "@/components/atmosphere/atmospheric-interpretation";
+import { MovementReading } from "@/components/atmosphere/movement-reading";
 import { approximateMapLocation } from "@/data/approximate-places";
 import type { AnalysedSunset } from "@/domain/analysed-sunset";
+import type { LocalAtmosphericTimeSeries } from "@/domain/atmospheric-time-series";
 import type { CloudFieldData } from "@/domain/cloud-field";
-import { fetchOpenMeteoCloudField } from "@/services/weather";
+import {
+  fetchOpenMeteoAtmosphericTimeSeries,
+  fetchOpenMeteoCloudField,
+} from "@/services/weather";
 import { sunsetDateToIso } from "@/services/weather/open-meteo-cloud-field";
 import { solarAzimuth } from "@/lib/solar-position";
 
@@ -45,31 +55,49 @@ export function AtmosphereSection({
     : null;
   const [requestState, setRequestState] = useState<{
     key: string;
-    data: CloudFieldData | null;
+    cloudField: CloudFieldData | null;
+    timeSeries: LocalAtmosphericTimeSeries | null;
     error: boolean;
   } | null>(null);
 
   useEffect(() => {
-    if (cloudData !== undefined || !selectedSunset || !location || !requestKey) {
+    if (!selectedSunset || !location || !requestKey) {
       return;
     }
 
     const controller = new AbortController();
 
-    void fetchOpenMeteoCloudField({
+    const request = {
       location,
       date: selectedSunset.date,
       captureTimestamp: selectedSunset.captureTimestamp,
       minutesFromSunset: selectedSunset.minutesFromSunset,
       signal: controller.signal,
-    }).then((field) => {
-      setRequestState({ key: requestKey, data: field, error: false });
+    };
+
+    void Promise.all([
+      cloudData === undefined
+        ? fetchOpenMeteoCloudField(request)
+        : Promise.resolve(cloudData),
+      fetchOpenMeteoAtmosphericTimeSeries(request),
+    ]).then(([cloudField, timeSeries]) => {
+      setRequestState({
+        key: requestKey,
+        cloudField,
+        timeSeries,
+        error: false,
+      });
     }).catch((error: unknown) => {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
 
-      setRequestState({ key: requestKey, data: null, error: true });
+      setRequestState({
+        key: requestKey,
+        cloudField: null,
+        timeSeries: null,
+        error: true,
+      });
     });
 
     return () => controller.abort();
@@ -77,15 +105,17 @@ export function AtmosphereSection({
 
   const matchingRequest = requestState?.key === requestKey ? requestState : null;
   const resolvedCloudData = cloudData === undefined
-    ? matchingRequest?.data ?? null
+    ? matchingRequest?.cloudField ?? null
     : cloudData;
+  const timeSeries = matchingRequest?.timeSeries ?? null;
+  const selectedAtmosphere = timeSeries?.selectedRecord ?? null;
   const cloudStatus = cloudData !== undefined
     ? cloudData ? "ready" : "idle"
     : !requestKey
       ? "idle"
       : matchingRequest?.error
         ? "error"
-        : matchingRequest?.data
+        : matchingRequest?.cloudField
           ? "ready"
           : "loading";
   const unavailableMessage = cloudStatus === "loading"
@@ -101,25 +131,38 @@ export function AtmosphereSection({
     <section className="atmosphereSection" aria-labelledby="atmosphere-title">
       <header className="atmosphereHeading">
         <div>
-          <p className="sectionLabel">Atmospheric context</p>
-          <h2 id="atmosphere-title">Cloud map</h2>
+          <p className="sectionLabel">Conditions surrounding this sunset</p>
+          <h2 id="atmosphere-title">Atmosphere</h2>
         </div>
-        <p>
-          A geographical reading surface for the air around the observation,
-          kept separate from colour measured directly in the photograph.
-        </p>
+        <p className="atmosphereLocation">{selectedSunset?.location ?? "Approximate location unavailable"}</p>
       </header>
 
-      <div className="atmosphereLayout">
-        <CloudFieldMap
-          cloudData={resolvedCloudData}
-          location={location}
-          mode={view}
-          satelliteDate={satelliteDate}
-          unavailableMessage={unavailableMessage}
-        />
+      <div className="atmospherePlate">
+        <div className="atmosphereReadings">
+          <LightReading
+            location={location}
+            selectedSunset={selectedSunset}
+            timeSeries={timeSeries}
+          />
+          <CloudReading record={selectedAtmosphere} />
+          <AtmosphereReading record={selectedAtmosphere} />
+        </div>
 
-        <aside className="atmosphereEvidence" aria-label="Cloud map evidence">
+        <div className="atmosphereSpatialEvidence">
+          <div className="cloudFieldHeading">
+            <h3>Cloud field</h3>
+            <span>Modelled cloud cover · ERA5 reanalysis</span>
+          </div>
+          <CloudFieldMap
+            cloudData={resolvedCloudData}
+            location={location}
+            mode={view}
+            satelliteDate={satelliteDate}
+            unavailableMessage={unavailableMessage}
+          />
+          <MovementReading record={selectedAtmosphere} />
+
+          <aside className="atmosphereEvidence" aria-label="Cloud map evidence">
           <fieldset>
             <legend>Source view</legend>
             <div aria-label="Cloud source view" className="cloudModeSwitch">
@@ -133,9 +176,12 @@ export function AtmosphereSection({
                 disabled={!location || !satelliteDate}
                 onClick={() => setView("satellite")}
                 type="button"
-              >Satellite</button>
+              >Satellite reference</button>
             </div>
-            <small>Cloud field is reanalysis; Satellite is observed daytime imagery.</small>
+            <small>
+              Cloud field is reanalysis. Satellite reference is a daytime
+              observation from the same date; acquisition time may differ from sunset.
+            </small>
           </fieldset>
 
           <div>
@@ -150,10 +196,10 @@ export function AtmosphereSection({
                 <dd>{selectedSunset?.location ?? "Unavailable"}</dd>
               </div>
               <div>
-                <dt>Cloud layer</dt>
+                <dt>{view === "satellite" ? "Reference layer" : "Cloud layer"}</dt>
                 <dd>
                   {view === "satellite"
-                    ? satelliteDate ? "NASA VIIRS satellite" : "Not available"
+                    ? satelliteDate ? "NASA/NOAA-20 VIIRS daytime reference" : "Not available"
                     : cloudStatus === "loading"
                     ? "Retrieving…"
                     : resolvedCloudData
@@ -161,54 +207,16 @@ export function AtmosphereSection({
                       : "Not available"}
                 </dd>
               </div>
-              {view === "cloud" && resolvedCloudData?.weather ? (
-                <>
-                  <div>
-                    <dt>Air temperature</dt>
-                    <dd>{resolvedCloudData.weather.temperatureCelsius === null
-                      ? "Unavailable"
-                      : `${resolvedCloudData.weather.temperatureCelsius.toFixed(1)} °C`}</dd>
-                  </div>
-                  <div>
-                    <dt>Relative humidity</dt>
-                    <dd>{resolvedCloudData.weather.relativeHumidityPercent === null
-                      ? "Unavailable"
-                      : `${Math.round(resolvedCloudData.weather.relativeHumidityPercent)}%`}</dd>
-                  </div>
-                  <div>
-                    <dt>Surface pressure</dt>
-                    <dd>{resolvedCloudData.weather.surfacePressureHectopascals === null
-                      ? "Unavailable"
-                      : `${Math.round(resolvedCloudData.weather.surfacePressureHectopascals)} hPa`}</dd>
-                  </div>
-                  <div>
-                    <dt>Wind at 10 m</dt>
-                    <dd>{resolvedCloudData.weather.windSpeedKilometresPerHour === null
-                      ? "Unavailable"
-                      : `${resolvedCloudData.weather.windSpeedKilometresPerHour.toFixed(1)} km/h`}</dd>
-                  </div>
-                  <div>
-                    <dt>Precipitation</dt>
-                    <dd>{resolvedCloudData.weather.precipitationMillimetres === null
-                      ? "Unavailable"
-                      : `${resolvedCloudData.weather.precipitationMillimetres.toFixed(1)} mm`}</dd>
-                  </div>
-                  <div>
-                    <dt>Visibility</dt>
-                    <dd>{resolvedCloudData.weather.visibilityMetres === null
-                      ? "Unavailable"
-                      : `${(resolvedCloudData.weather.visibilityMetres / 1000).toFixed(1)} km`}</dd>
-                  </div>
-                </>
-              ) : null}
             </dl>
           </div>
 
           {view === "satellite" ? (
             <p className="atmosphereCaution">
-              Satellite imagery: <a href="https://earthdata.nasa.gov/gibs" rel="noreferrer" target="_blank">NASA GIBS</a>,
+              Satellite reference: <a href="https://earthdata.nasa.gov/gibs" rel="noreferrer" target="_blank">NASA GIBS</a>,
               NOAA-20 VIIRS corrected reflectance. This is a daytime orbital
-              observation from the capture date, not an image taken at sunset.
+              observation from the same date. Its exact acquisition time for
+              this displayed swath is not established and may differ from sunset;
+              it is not treated as temporally simultaneous with the photograph.
             </p>
           ) : (
             <p className="atmosphereCaution">
@@ -218,12 +226,25 @@ export function AtmosphereSection({
             </p>
           )}
 
-          <p className="atmosphereCaution">
-            Model and reanalysis fields describe estimated atmospheric state.
-            They must never be presented as direct satellite observation.
-          </p>
-        </aside>
+          {view === "cloud" ? (
+            <p className="atmosphereCaution">
+              Model and reanalysis fields describe estimated atmospheric state.
+              They must never be presented as direct satellite observation.
+            </p>
+          ) : null}
+          </aside>
+        </div>
       </div>
+      <AtmosphericTimeline
+        selectedSunset={selectedSunset}
+        timeSeries={timeSeries}
+      />
+      <AtmosphericInterpretationStrip
+        atmosphericRecord={selectedAtmosphere}
+        location={location}
+        selectedSunset={selectedSunset}
+        sunsetTimestamp={timeSeries?.sunsetTimestamp ?? null}
+      />
     </section>
   );
 }

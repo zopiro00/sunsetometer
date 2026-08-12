@@ -14,15 +14,6 @@ export type CloudFieldData = {
   spatialResolution?: string;
   temporalResolution?: string;
   closestToCaptureMinutes?: number;
-  /** Point weather at the approximate observation location and field time. */
-  weather?: {
-    temperatureCelsius: number | null;
-    relativeHumidityPercent: number | null;
-    precipitationMillimetres: number | null;
-    surfacePressureHectopascals: number | null;
-    windSpeedKilometresPerHour: number | null;
-    visibilityMetres: number | null;
-  };
 };
 
 export type ApproximateMapLocation = {

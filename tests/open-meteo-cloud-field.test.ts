@@ -21,11 +21,11 @@ describe("Open-Meteo cloud-field adapter", () => {
       precision: "city",
     });
 
-    expect(field.coordinates).toHaveLength(49);
+    expect(field.coordinates).toHaveLength(169);
     expect(field.coordinates[0].latitude).toBe(field.bounds[3]);
-    expect(field.coordinates[48].latitude).toBe(field.bounds[1]);
+    expect(field.coordinates[168].latitude).toBe(field.bounds[1]);
     expect(field.coordinates[0].longitude).toBe(field.bounds[0]);
-    expect(field.coordinates[6].longitude).toBe(field.bounds[2]);
+    expect(field.coordinates[12].longitude).toBe(field.bounds[2]);
   });
 
   it("selects the analysis hour nearest the calculated observation time", () => {

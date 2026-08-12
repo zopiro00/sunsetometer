@@ -4,19 +4,13 @@ import type {
 } from "@/domain/cloud-field";
 
 const OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive";
-const GRID_SIZE = 7;
+const GRID_SIZE = 13;
 const HALF_LATITUDE_SPAN = 2.25;
 
 type OpenMeteoLocationResponse = {
   hourly?: {
     time?: string[];
     cloud_cover?: (number | null)[];
-    temperature_2m?: (number | null)[];
-    relative_humidity_2m?: (number | null)[];
-    precipitation?: (number | null)[];
-    surface_pressure?: (number | null)[];
-    wind_speed_10m?: (number | null)[];
-    visibility?: (number | null)[];
   };
   daily?: {
     sunset?: (string | null)[];
@@ -137,15 +131,7 @@ export async function fetchOpenMeteoCloudField({
     longitude: coordinates.map(({ longitude }) => longitude.toFixed(4)).join(","),
     start_date: isoDate,
     end_date: isoDate,
-    hourly: [
-      "cloud_cover",
-      "temperature_2m",
-      "relative_humidity_2m",
-      "precipitation",
-      "surface_pressure",
-      "wind_speed_10m",
-      "visibility",
-    ].join(","),
+    hourly: "cloud_cover",
     daily: "sunset",
     timezone: "UTC",
     models: "era5",
@@ -200,22 +186,10 @@ export async function fetchOpenMeteoCloudField({
     units: "%",
     source: "Copernicus ERA5 · via Open-Meteo",
     dataType: "reanalysis",
-    spatialResolution: "~0.25° source grid · sampled at ~80 km",
+    spatialResolution: "13 × 13 lattice · approximately 40 km between samples · ERA5 source grid ~0.25°",
     temporalResolution: "1 hour",
     closestToCaptureMinutes: Math.round(
       Math.abs(Date.parse(timestamp) - Date.parse(targetTimestamp)) / 60_000,
     ),
-    weather: {
-      temperatureCelsius: centre.hourly?.temperature_2m?.[timeIndex] ?? null,
-      relativeHumidityPercent:
-        centre.hourly?.relative_humidity_2m?.[timeIndex] ?? null,
-      precipitationMillimetres:
-        centre.hourly?.precipitation?.[timeIndex] ?? null,
-      surfacePressureHectopascals:
-        centre.hourly?.surface_pressure?.[timeIndex] ?? null,
-      windSpeedKilometresPerHour:
-        centre.hourly?.wind_speed_10m?.[timeIndex] ?? null,
-      visibilityMetres: centre.hourly?.visibility?.[timeIndex] ?? null,
-    },
   };
 }

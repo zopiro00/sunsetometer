@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RadialSunsetometer } from "@/components/radial-sunsetometer/radial-sunsetometer";
 import { AtmosphereSection } from "@/components/atmosphere/atmosphere-section";
+import { IntroHero } from "@/components/intro-hero";
 import { SkyAnalysisDebug } from "@/components/sky-analysis-debug";
 import { SkyRegionSelector } from "@/components/sky-region-selector";
 import { MOCK_ANALYSED_SUNSETS } from "@/data/mock-analysed-sunsets";
@@ -138,72 +139,25 @@ export function SunsetometerExperience() {
 
   return (
     <>
-      <section className="hero" aria-labelledby="page-title">
-        <div className="eyebrow" aria-hidden="true">
-          <span>Field instrument No. 01</span>
-          <span>{DEMO_MODE ? "Development mode" : "Prototype"}</span>
-        </div>
+      <IntroHero
+        isAnalysing={isAnalysing}
+        isDemoMode={DEMO_MODE}
+        onDemoChange={(nextShowDemo) => {
+          setShowDemo(nextShowDemo);
 
-        <div className="heroCopy">
-          <p className="kicker">An atlas of evening light</p>
-          <h1 id="page-title">Sunsetometer</h1>
-          <p className="introduction">
-            A poetic, scientifically grounded instrument for reading the
-            colour, atmosphere, and solar context held in a sunset photograph.
-          </p>
-        </div>
-
-        <div className="pickerShell">
-          <div className="sunMark" aria-hidden="true">
-            <span />
-          </div>
-          <h2>Choose a sunset</h2>
-          <p>Analyse a photograph locally and place it on the colour field.</p>
-          <label
-            aria-disabled={isAnalysing}
-            className="photographPicker"
-            htmlFor="sunset-photograph"
-          >
-            {isAnalysing ? "Analysing…" : "Choose from your device"}
-          </label>
-          <input
-            accept="image/*"
-            className="visuallyHidden"
-            disabled={isAnalysing}
-            id="sunset-photograph"
-            onChange={(event) => {
-              handlePhotograph(event.target.files?.[0]);
-              event.target.value = "";
-            }}
-            type="file"
-          />
-          <p aria-live="polite" id="picker-status" className="status">
-            {status}
-          </p>
-          {DEMO_MODE ? (
-            <label className="demoControl">
-              <input
-                checked={showDemo}
-                onChange={(event) => {
-                  const nextShowDemo = event.target.checked;
-                  setShowDemo(nextShowDemo);
-
-                  if (
-                    !nextShowDemo &&
-                    MOCK_ANALYSED_SUNSETS.some(
-                      (sunset) => sunset.id === selectedSunsetId,
-                    )
-                  ) {
-                    setSelectedSunsetId(null);
-                  }
-                }}
-                type="checkbox"
-              />
-              Show demo observations
-            </label>
-          ) : null}
-        </div>
-      </section>
+          if (
+            !nextShowDemo &&
+            MOCK_ANALYSED_SUNSETS.some(
+              (sunset) => sunset.id === selectedSunsetId,
+            )
+          ) {
+            setSelectedSunsetId(null);
+          }
+        }}
+        onPhotograph={handlePhotograph}
+        showDemo={showDemo}
+        status={status}
+      />
 
       {pendingPhoto ? (
         <SkyRegionSelector

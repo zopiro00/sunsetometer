@@ -4,4 +4,5 @@
  * and must preserve source attribution and model/reanalysis provenance.
  */
 export { fetchOpenMeteoCloudField } from "./open-meteo-cloud-field";
+export { fetchOpenMeteoAtmosphericTimeSeries } from "./open-meteo-atmospheric-time-series";
 export { nasaGibsSatelliteImage } from "./nasa-gibs";

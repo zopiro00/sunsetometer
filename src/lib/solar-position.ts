@@ -2,8 +2,15 @@ function normaliseDegrees(value: number): number {
   return ((value % 360) + 360) % 360;
 }
 
-/** Approximate apparent solar azimuth, clockwise from true north. */
-export function solarAzimuth({
+export type SolarPosition = {
+  /** Clockwise from true north. */
+  azimuth: number;
+  /** Geometric angle above or below the horizon. */
+  elevation: number;
+};
+
+/** Approximate solar position for an instant and WGS84 location. */
+export function solarPosition({
   timestamp,
   latitude,
   longitude,
@@ -11,7 +18,7 @@ export function solarAzimuth({
   timestamp: string;
   latitude: number;
   longitude: number;
-}): number | null {
+}): SolarPosition | null {
   const instant = Date.parse(timestamp);
 
   if (![instant, latitude, longitude].every(Number.isFinite)) {
@@ -41,11 +48,33 @@ export function solarAzimuth({
   ) * Math.PI / 180;
   const hourAngle = localSiderealAngle - rightAscension;
   const latitudeRadians = latitude * Math.PI / 180;
+  const elevation = Math.asin(
+    Math.sin(latitudeRadians) * Math.sin(declination) +
+      Math.cos(latitudeRadians) * Math.cos(declination) * Math.cos(hourAngle),
+  ) * 180 / Math.PI;
   const azimuth = Math.atan2(
     Math.sin(hourAngle),
     Math.cos(hourAngle) * Math.sin(latitudeRadians) -
       Math.tan(declination) * Math.cos(latitudeRadians),
   ) * 180 / Math.PI + 180;
 
-  return normaliseDegrees(azimuth);
+  return { azimuth: normaliseDegrees(azimuth), elevation };
+}
+
+/** Approximate solar azimuth, clockwise from true north. */
+export function solarAzimuth(input: Parameters<typeof solarPosition>[0]): number | null {
+  return solarPosition(input)?.azimuth ?? null;
+}
+
+export function solarElevation(input: Parameters<typeof solarPosition>[0]): number | null {
+  return solarPosition(input)?.elevation ?? null;
+}
+
+export function twilightPhase(elevation: number | null): string | null {
+  if (elevation === null || !Number.isFinite(elevation)) return null;
+  if (elevation > 0) return "Daylight";
+  if (elevation > -6) return "Civil twilight";
+  if (elevation > -12) return "Nautical twilight";
+  if (elevation > -18) return "Astronomical twilight";
+  return "Night";
 }

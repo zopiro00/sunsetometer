@@ -54,7 +54,7 @@ export function RadialSunsetometer({
   onRename,
 }: RadialSunsetometerProps) {
   const [viewMode, setViewMode] = useState<InstrumentViewMode>("circular");
-  const [apertureScale, setApertureScale] = useState(1);
+  const [aperturePercent, setAperturePercent] = useState(50);
   const [atlasPosition, setAtlasPosition] = useState(0.66);
   const [showObservationLine, setShowObservationLine] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -70,6 +70,7 @@ export function RadialSunsetometer({
     id: string;
     status: "loaded" | "error";
   } | null>(null);
+  const apertureScale = aperturePercent / 50;
   const innerRadius = BASE_INNER_RADIUS * apertureScale;
   const viewerRadius = BASE_VIEWER_RADIUS * apertureScale;
   const positionedSunsets = useMemo(() => {
@@ -295,16 +296,16 @@ export function RadialSunsetometer({
               <label>
                 <span className="instrumentSettingsLabel">
                   Circle size
-                  <output>{Math.round(apertureScale * 100)}%</output>
+                  <output>{aperturePercent}%</output>
                 </span>
                 <input
                   aria-label="Circle size"
-                  max="1.2"
-                  min="0.8"
-                  onChange={(event) => setApertureScale(Number(event.target.value))}
-                  step="0.01"
+                  max="75"
+                  min="25"
+                  onChange={(event) => setAperturePercent(Number(event.target.value))}
+                  step="1"
                   type="range"
-                  value={apertureScale}
+                  value={aperturePercent}
                 />
               </label>
               {viewMode === "atlas" ? (

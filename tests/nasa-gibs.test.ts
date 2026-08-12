@@ -19,6 +19,8 @@ describe("NASA GIBS satellite image", () => {
     expect(url.searchParams.get("LAYERS")).toBe(
       "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
     );
+    expect(image.acquisitionTimestamp).toBeNull();
+    expect(image.temporalContext).toBe("same-date-daytime-reference");
     expect(url.searchParams.get("TIME")).toBe("2026-07-07");
     expect(image.coordinates).toHaveLength(4);
     expect(image.bounds).toHaveLength(4);

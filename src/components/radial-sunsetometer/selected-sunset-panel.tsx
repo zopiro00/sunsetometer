@@ -4,6 +4,7 @@ import type { AnalysedSunset } from "@/domain/analysed-sunset";
 import { getProvenanceLabel } from "@/domain/provenance";
 import { getSectorByCode } from "@/lib/colour-analysis";
 import { getChromaCategory } from "@/lib/colour-analysis/chroma-category";
+import { SunsetExportPanel } from "@/components/radial-sunsetometer/sunset-export-panel";
 
 type SelectedSunsetPanelProps = {
   sunset?: AnalysedSunset;
@@ -121,6 +122,7 @@ export function SelectedSunsetPanel({
   onRename,
   variant = "default",
 }: SelectedSunsetPanelProps) {
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const variantClass =
     variant === "atlas" ? " selectedSunsetPanelAtlas" : "";
   if (!sunset) {
@@ -150,6 +152,9 @@ export function SelectedSunsetPanel({
           onRename={onRename}
           sunset={sunset}
         />
+        <button className="selectedSunsetExport" onClick={() => setIsExportOpen(true)} type="button">
+          Export PDF
+        </button>
       </header>
 
       <div className="selectedSunsetEvidence">
@@ -218,6 +223,9 @@ export function SelectedSunsetPanel({
           </section>
         ) : null}
       </div>
+      {isExportOpen ? (
+        <SunsetExportPanel onClose={() => setIsExportOpen(false)} sunset={sunset} />
+      ) : null}
     </aside>
   );
 }

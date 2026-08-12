@@ -7,6 +7,8 @@ export function nasaGibsSatelliteImage(
   url: string;
   bounds: [number, number, number, number];
   coordinates: [[number, number], [number, number], [number, number], [number, number]];
+  acquisitionTimestamp: string | null;
+  temporalContext: "same-date-daytime-reference";
 } {
   const halfLatitudeSpan = 3;
   const halfLongitudeSpan = Math.min(
@@ -41,5 +43,10 @@ export function nasaGibsSatelliteImage(
       [east, south],
       [west, south],
     ],
+    // This daily GIBS layer does not expose a single acquisition timestamp for
+    // the requested swath. A future time-matched geostationary adapter can
+    // populate this field without changing the map component contract.
+    acquisitionTimestamp: null,
+    temporalContext: "same-date-daytime-reference",
   };
 }
