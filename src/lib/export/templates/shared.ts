@@ -47,41 +47,201 @@ function rgb(hex: string): readonly [number, number, number] {
   return [Number.parseInt(value.slice(0, 2), 16), Number.parseInt(value.slice(2, 4), 16), Number.parseInt(value.slice(4, 6), 16)];
 }
 
-export function drawCircularScale(pdf: jsPDF, x: number, y: number, radius: number, sunset: AnalysedSunset) {
-  const innerRadius = radius * 0.72;
-  pdf.setLineWidth(Math.max(1.2, radius * 0.085));
-  SUNSET_COLOUR_TAXONOMY.forEach((sector, index) => {
-    const angle = ((index * 6) - 90) * Math.PI / 180;
-    pdf.setDrawColor(...rgb(sector.representativeHex));
-    pdf.line(x + Math.cos(angle) * innerRadius, y + Math.sin(angle) * innerRadius, x + Math.cos(angle) * radius, y + Math.sin(angle) * radius);
-  });
-  pdf.setFillColor(...PAPER);
-  pdf.circle(x, y, innerRadius - 1, "F");
-  pdf.setDrawColor(...INK);
-  pdf.setLineWidth(0.3);
-  pdf.circle(x, y, innerRadius - 1, "S");
-  pdf.setFont("times", "normal");
-  pdf.setFontSize(Math.max(10, radius * 0.44));
-  pdf.setTextColor(...INK);
-  pdf.text(sunset.classification.sectorId, x, y + 2, { align: "center" });
+function selectedSectorIndex(sunset: AnalysedSunset): number {
+  const index = Number.parseInt(sunset.classification.sectorId.slice(1), 10) - 1;
+  return Number.isFinite(index) ? Math.max(0, Math.min(SUNSET_COLOUR_TAXONOMY.length - 1, index)) : 0;
 }
 
-export function drawAtlasScale(pdf: jsPDF, x: number, y: number, width: number, height: number, sunset: AnalysedSunset) {
-  const bandWidth = width / SUNSET_COLOUR_TAXONOMY.length;
+function drawImageInAperture(
+  pdf: jsPDF,
+  imageData: string,
+  centreX: number,
+  centreY: number,
+  radius: number,
+) {
+  pdf.discardPath();
+  pdf.saveGraphicsState();
+  pdf.circle(centreX, centreY, radius, null);
+  pdf.clip();
+  pdf.discardPath();
+  const imageWidth = radius * 3.2;
+  const imageHeight = radius * 2;
+  pdf.addImage(imageData, "JPEG", centreX - imageWidth / 2, centreY - imageHeight / 2, imageWidth, imageHeight);
+  pdf.restoreGraphicsState();
+  pdf.setDrawColor(255, 250, 240);
+  pdf.setLineWidth(Math.max(0.5, radius * 0.025));
+  pdf.circle(centreX, centreY, radius, "S");
+}
+
+export function drawCircularScale(
+  context: PdfTemplateContext,
+  centreX: number,
+  centreY: number,
+  outerRadius: number,
+) {
+  const { pdf, sunset, imageData } = context;
+  const innerRadius = outerRadius * 0.55;
+  const sectorAngle = 360 / SUNSET_COLOUR_TAXONOMY.length;
+
   SUNSET_COLOUR_TAXONOMY.forEach((sector, index) => {
+    const start = ((index * sectorAngle) - 90) * Math.PI / 180;
+    const end = (((index + 1) * sectorAngle) - 90) * Math.PI / 180;
     pdf.setFillColor(...rgb(sector.representativeHex));
-    pdf.rect(x + index * bandWidth, y, bandWidth + 0.1, height, "F");
+    pdf.triangle(
+      centreX,
+      centreY,
+      centreX + Math.cos(start) * outerRadius,
+      centreY + Math.sin(start) * outerRadius,
+      centreX + Math.cos(end) * outerRadius,
+      centreY + Math.sin(end) * outerRadius,
+      "F",
+    );
+    pdf.setDrawColor(255, 250, 240);
+    pdf.setLineWidth(0.12);
+    pdf.line(
+      centreX + Math.cos(start) * innerRadius,
+      centreY + Math.sin(start) * innerRadius,
+      centreX + Math.cos(start) * outerRadius,
+      centreY + Math.sin(start) * outerRadius,
+    );
   });
+
+  drawImageInAperture(pdf, imageData, centreX, centreY, innerRadius);
   pdf.setDrawColor(...INK);
-  pdf.setLineWidth(0.3);
+  pdf.setLineWidth(0.35);
+  pdf.circle(centreX, centreY, outerRadius, "S");
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(Math.max(4.5, outerRadius * 0.045));
+  pdf.setTextColor(...INK);
+  SUNSET_COLOUR_TAXONOMY.forEach((sector, index) => {
+    if (index % 5 !== 0) return;
+    const angle = ((index * sectorAngle) - 87) * Math.PI / 180;
+    pdf.text(
+      sector.code,
+      centreX + Math.cos(angle) * (outerRadius + Math.max(4, outerRadius * 0.07)),
+      centreY + Math.sin(angle) * (outerRadius + Math.max(4, outerRadius * 0.07)) + 1.5,
+      { align: "center" },
+    );
+  });
+
+  const selectedAngle = ((selectedSectorIndex(sunset) + 0.5) * sectorAngle - 90) * Math.PI / 180;
+  const markerRadius = innerRadius + (outerRadius - innerRadius) * Math.max(0.12, sunset.classification.radialPosition);
+  const markerX = centreX + Math.cos(selectedAngle) * markerRadius;
+  const markerY = centreY + Math.sin(selectedAngle) * markerRadius;
+  pdf.setFillColor(255, 250, 240);
+  pdf.setDrawColor(...INK);
+  pdf.setLineWidth(0.55);
+  pdf.circle(markerX, markerY, Math.max(1.5, outerRadius * 0.018), "FD");
+}
+
+function perimeterPoint(x: number, y: number, width: number, height: number, progress: number) {
+  const perimeter = 2 * (width + height);
+  let distance = ((progress % 1) + 1) % 1 * perimeter;
+  if (distance <= width) return { x: x + distance, y };
+  distance -= width;
+  if (distance <= height) return { x: x + width, y: y + distance };
+  distance -= height;
+  if (distance <= width) return { x: x + width - distance, y: y + height };
+  distance -= width;
+  return { x, y: y + height - distance };
+}
+
+export type PrintAtlasInstrumentOptions = {
+  apertureRadiusRatio?: number;
+  apertureXRatio?: number;
+  apertureYRatio?: number;
+  showPerimeterNumbers?: boolean;
+};
+
+function pointBeyondAperture(
+  centreX: number,
+  centreY: number,
+  targetX: number,
+  targetY: number,
+  apertureRadius: number,
+  progress: number,
+) {
+  const deltaX = targetX - centreX;
+  const deltaY = targetY - centreY;
+  const distance = Math.hypot(deltaX, deltaY);
+  const apertureProgress = distance === 0 ? 0 : apertureRadius / distance;
+  const adjustedProgress = apertureProgress + Math.max(0, Math.min(1, progress)) * (1 - apertureProgress);
+  return {
+    x: centreX + deltaX * adjustedProgress,
+    y: centreY + deltaY * adjustedProgress,
+  };
+}
+
+export function drawPrintAtlasInstrument(
+  context: PdfTemplateContext,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  options: PrintAtlasInstrumentOptions = {},
+) {
+  const { pdf, sunset, imageData } = context;
+  const centreX = x + width * (options.apertureXRatio ?? 0.64);
+  const centreY = y + height * (options.apertureYRatio ?? 0.5);
+  const apertureRadius = Math.min(width, height) * (options.apertureRadiusRatio ?? 0.24);
+
+  SUNSET_COLOUR_TAXONOMY.forEach((sector, index) => {
+    const start = perimeterPoint(x, y, width, height, index / SUNSET_COLOUR_TAXONOMY.length);
+    const end = perimeterPoint(x, y, width, height, (index + 1) / SUNSET_COLOUR_TAXONOMY.length);
+    pdf.setFillColor(...rgb(sector.representativeHex));
+    pdf.triangle(centreX, centreY, start.x, start.y, end.x, end.y, "F");
+    pdf.setDrawColor(255, 250, 240);
+    pdf.setLineWidth(0.12);
+    pdf.line(centreX, centreY, start.x, start.y);
+  });
+
+  drawImageInAperture(pdf, imageData, centreX, centreY, apertureRadius);
+  pdf.setDrawColor(...INK);
+  pdf.setLineWidth(0.35);
   pdf.rect(x, y, width, height, "S");
-  const selectedIndex = Number.parseInt(sunset.classification.sectorId.slice(1), 10) - 1;
-  const markerX = x + (selectedIndex + 0.5) * bandWidth;
-  pdf.setLineWidth(0.8);
-  pdf.line(markerX, y - 2, markerX, y + height + 2);
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(7);
-  pdf.text(sunset.classification.sectorId, markerX, y + height + 6, { align: "center" });
+
+  if (options.showPerimeterNumbers !== false) {
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(Math.max(4.5, Math.min(width, height) * 0.018));
+    pdf.setTextColor(...INK);
+    SUNSET_COLOUR_TAXONOMY.forEach((sector, index) => {
+      if (index % 5 !== 0) return;
+      const point = perimeterPoint(x, y, width, height, (index + 0.5) / SUNSET_COLOUR_TAXONOMY.length);
+      const labelX = point.x <= x + 0.5 ? point.x - 3 : point.x >= x + width - 0.5 ? point.x + 3 : point.x;
+      const labelY = point.y <= y + 0.5 ? point.y - 2.5 : point.y >= y + height - 0.5 ? point.y + 4.5 : point.y + 1.5;
+      pdf.text(sector.code, labelX, labelY, { align: point.x <= x + 0.5 ? "right" : point.x >= x + width - 0.5 ? "left" : "center" });
+    });
+  }
+
+  const selectedIndex = selectedSectorIndex(sunset);
+  const selectedStart = perimeterPoint(x, y, width, height, selectedIndex / SUNSET_COLOUR_TAXONOMY.length);
+  const selectedEnd = perimeterPoint(x, y, width, height, (selectedIndex + 1) / SUNSET_COLOUR_TAXONOMY.length);
+  const selectedStartAtAperture = pointBeyondAperture(centreX, centreY, selectedStart.x, selectedStart.y, apertureRadius, 0);
+  const selectedEndAtAperture = pointBeyondAperture(centreX, centreY, selectedEnd.x, selectedEnd.y, apertureRadius, 0);
+  pdf.setDrawColor(...INK);
+  pdf.setLineWidth(0.35);
+  pdf.line(selectedStartAtAperture.x, selectedStartAtAperture.y, selectedStart.x, selectedStart.y);
+  pdf.line(selectedEndAtAperture.x, selectedEndAtAperture.y, selectedEnd.x, selectedEnd.y);
+  const selected = perimeterPoint(
+    x,
+    y,
+    width,
+    height,
+    (selectedIndex + 0.5) / SUNSET_COLOUR_TAXONOMY.length,
+  );
+  const marker = pointBeyondAperture(
+    centreX,
+    centreY,
+    selected.x,
+    selected.y,
+    apertureRadius,
+    sunset.classification.radialPosition,
+  );
+  pdf.setFillColor(255, 250, 240);
+  pdf.setDrawColor(...INK);
+  pdf.setLineWidth(0.55);
+  pdf.circle(marker.x, marker.y, Math.max(1.5, Math.min(width, height) * 0.012), "FD");
 }
 
 export function solarTiming(sunset: AnalysedSunset): string | null {
@@ -91,6 +251,10 @@ export function solarTiming(sunset: AnalysedSunset): string | null {
 
 export function densityLines(context: PdfTemplateContext): string[] {
   return [...selectExportContent({ ...context, surface: "poster" }).metrics];
+}
+
+export function posterInterpretation(context: PdfTemplateContext): string | undefined {
+  return selectExportContent({ ...context, surface: "poster" }).interpretation;
 }
 
 export function drawIdentity(context: PdfTemplateContext, x: number, y: number, maxWidth: number, compact = false) {

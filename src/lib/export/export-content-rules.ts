@@ -40,8 +40,8 @@ export function selectExportContent({
 }): ExportContent {
   if (surface === "postcard-front") return { metrics: [] };
 
-  const essential = [
-    surface === "poster" ? `${sunset.classification.sectorId} - ${sunset.classification.sectorName}` : null,
+  const posterEssential = [solarTiming(sunset)];
+  const backEssential = [
     `Colour family: ${sunset.colourFamily}`,
     solarTiming(sunset),
   ];
@@ -58,18 +58,20 @@ export function selectExportContent({
     `Sky colour confidence: ${Math.round(sunset.skyAnalysis.primarySkyColour.confidence * 100)}%`,
   ];
   const requested = options.density === "minimal"
-    ? essential
+    ? surface === "poster" ? posterEssential : backEssential
     : options.density === "standard"
-      ? [...essential, ...standard]
-      : [...essential, ...standard, ...detailed];
+      ? [...(surface === "poster" ? posterEssential : backEssential), ...standard]
+      : [...(surface === "poster" ? posterEssential : backEssential), ...standard, ...detailed];
   const limit = surface === "poster"
-    ? options.density === "detailed" ? 8 : options.density === "standard" ? 5 : 3
+    ? options.density === "detailed" ? 6 : options.density === "standard" ? 4 : 1
     : options.density === "detailed" ? 10 : options.density === "standard" ? 7 : 4;
 
   return {
     metrics: requested.filter((value): value is string => Boolean(value)).slice(0, limit),
     interpretation: surface === "postcard-back" && options.density !== "minimal"
       ? atmosphere?.summary
+      : surface === "poster" && options.density === "detailed"
+        ? atmosphere?.summary
       : undefined,
   };
 }

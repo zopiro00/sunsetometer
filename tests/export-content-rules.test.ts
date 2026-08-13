@@ -26,16 +26,28 @@ describe("selectExportContent", () => {
     })).toEqual({ metrics: [] });
   });
 
-  it("caps standard poster content at five meaningful metrics", () => {
+  it("keeps standard poster content to timing and a few atmospheric metrics", () => {
     const result = selectExportContent({
       atmosphere,
       options: DEFAULT_SUNSET_EXPORT_OPTIONS,
       sunset,
       surface: "poster",
     });
-    expect(result.metrics).toHaveLength(5);
+    expect(result.metrics).toHaveLength(4);
+    expect(result.metrics[0]).toMatch(/sunset/);
     expect(result.metrics.join(" ")).toContain("Cloud layers");
     expect(result.metrics.join(" ")).not.toContain("Primary sky colour");
+  });
+
+  it("keeps minimal poster content to relative sunset timing", () => {
+    const result = selectExportContent({
+      atmosphere,
+      options: { ...DEFAULT_SUNSET_EXPORT_OPTIONS, density: "minimal" },
+      sunset,
+      surface: "poster",
+    });
+    expect(result.metrics).toHaveLength(1);
+    expect(result.metrics[0]).toMatch(/sunset/);
   });
 
   it("allows more evidence on detailed postcard backs without overcrowding", () => {

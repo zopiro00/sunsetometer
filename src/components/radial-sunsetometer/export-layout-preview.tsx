@@ -6,56 +6,26 @@ type ExportLayoutPreviewProps = {
   sunset: AnalysedSunset;
 };
 
-const PREVIEW_COLOURS = [
-  "#FFF4BA", "#EFBA3F", "#E7642C", "#D94C4A", "#E98890",
-  "#C55B9B", "#78648D", "#354E7E", "#4A6D84", "#94AFB9",
-  "#D1D4D2", "#C6AAA8", "#F2DAB4",
-] as const;
-
-function ClassificationPreview({ layout }: { layout: SunsetExportOptions["layout"] }) {
-  if (layout === "circular") {
-    return (
-      <span className="exportPreviewCircular" aria-hidden="true">
-        {PREVIEW_COLOURS.map((colour) => <i key={colour} style={{ background: colour }} />)}
-        <b />
-      </span>
-    );
-  }
-
+function InstrumentPreview({ layout, sunset }: Pick<ExportLayoutPreviewProps, "sunset"> & { layout: SunsetExportOptions["layout"] }) {
   return (
-    <span className="exportPreviewAtlas" aria-hidden="true">
-      {PREVIEW_COLOURS.map((colour) => <i key={colour} style={{ background: colour }} />)}
-    </span>
+    <div className={`exportPreviewInstrument exportPreviewInstrument${layout === "circular" ? "Circular" : "Atlas"}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- preview supports local blob URLs. */}
+      <img alt="" src={sunset.image} />
+      <span className="exportPreviewObservation" aria-hidden="true" />
+      <span className="exportPreviewCalibration" aria-hidden="true">S01 · S15 · S30 · S45 · S60</span>
+    </div>
   );
 }
 
 function FrontSheet({ options, sunset }: ExportLayoutPreviewProps) {
-  if (options.format === "postcard") {
-    return (
-      <div className="exportPreviewSheetFront exportPreviewPostcardFront">
-        <span className="exportPreviewMasthead">Sunsetometer</span>
-        <div className="exportPreviewPostcardInstrument">
-          {/* eslint-disable-next-line @next/next/no-img-element -- preview supports local blob URLs. */}
-          <img alt="" src={sunset.image} />
-        </div>
-        <div className="exportPreviewSheetIdentity">
-          <strong>{sunset.displayName}</strong>
-          <small>{sunset.classification.sectorId} — {sunset.classification.sectorName}</small>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="exportPreviewSheetFront">
+    <div className={`exportPreviewSheetFront exportPreviewFront${options.layout === "circular" ? "Circular" : "Atlas"} exportPreviewFront${options.format === "postcard" ? "Postcard" : "Poster"}`}>
       <span className="exportPreviewMasthead">Sunsetometer</span>
-      {/* eslint-disable-next-line @next/next/no-img-element -- preview supports local blob URLs. */}
-      <img alt="" src={sunset.image} />
+      <InstrumentPreview layout={options.layout} sunset={sunset} />
       <div className="exportPreviewSheetIdentity">
         <strong>{sunset.displayName}</strong>
-        <small>{sunset.classification.sectorId}</small>
+        <small>{sunset.classification.sectorId} — {sunset.classification.sectorName}</small>
       </div>
-      <ClassificationPreview layout={options.layout} />
       {options.format === "poster" && options.density !== "minimal" ? (
         <span className="exportPreviewMetricLines" aria-hidden="true"><i /><i /><i /></span>
       ) : null}
@@ -63,9 +33,10 @@ function FrontSheet({ options, sunset }: ExportLayoutPreviewProps) {
   );
 }
 
-function BackSheet({ sunset }: Pick<ExportLayoutPreviewProps, "sunset">) {
+function BackSheet({ format, sunset }: Pick<ExportLayoutPreviewProps, "sunset"> & { format: SunsetExportOptions["format"] }) {
   return (
     <div className="exportPreviewSheetBack">
+      <span className="exportPreviewMasthead">{format === "poster" ? "Archive verso" : "Postcard back"}</span>
       <strong>{sunset.displayName}</strong>
       <small>{sunset.classification.sectorId} — {sunset.classification.sectorName}</small>
       <span className="exportPreviewBackDivider" aria-hidden="true" />
@@ -78,7 +49,10 @@ function BackSheet({ sunset }: Pick<ExportLayoutPreviewProps, "sunset">) {
 export function ExportLayoutPreview({ options, sunset }: ExportLayoutPreviewProps) {
   const orientationClass = options.orientation === "landscape" ? "Landscape" : "Portrait";
   const formatClass = options.format === "postcard" ? "Postcard" : "Poster";
-  const description = `${options.layout === "circular" ? "Circular" : "Atlas"} ${options.format}, ${options.orientation}, ${options.sides === "front-back" ? "front and back" : "front only"}`;
+  const sideDescription = options.sides === "front-back"
+    ? options.format === "poster" ? "front and archive verso" : "front and postcard back"
+    : "front only";
+  const description = `${options.layout === "circular" ? "Circular" : "Atlas"} ${options.format}, ${options.orientation}, ${sideDescription}`;
 
   return (
     <figure className="exportLayoutPreview" aria-label={`Export preview: ${description}`}>
@@ -88,7 +62,7 @@ export function ExportLayoutPreview({ options, sunset }: ExportLayoutPreviewProp
         </div>
         {options.sides === "front-back" ? (
           <div className="exportPreviewSheet exportPreviewSecondSheet">
-            <BackSheet sunset={sunset} />
+            <BackSheet format={options.format} sunset={sunset} />
           </div>
         ) : null}
       </div>

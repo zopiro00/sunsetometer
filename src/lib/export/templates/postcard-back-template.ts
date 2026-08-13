@@ -4,9 +4,18 @@ import type { PdfTemplateContext } from "@/lib/export/templates/types";
 
 export function drawPostcardBackTemplate(context: PdfTemplateContext, label = "POSTCARD / BACK") {
   const { pdf, sunset } = context;
+  const isPosterReverse = label === "POSTER / REVERSE";
   const content = selectExportContent({ ...context, surface: "postcard-back" });
   const { width, height, margin } = drawFoundation(pdf, label, 7);
   const dividerX = width * 0.57;
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(6.5);
+  pdf.setTextColor(90, 77, 69);
+  pdf.text(
+    isPosterReverse ? "ARCHIVE VERSO · STRUCTURED EVIDENCE" : "CORRESPONDENCE SIDE · STRUCTURED EVIDENCE",
+    margin,
+    26,
+  );
   pdf.setDrawColor(...INK);
   pdf.setLineWidth(0.25);
   pdf.line(dividerX, 30, dividerX, height - 38);

@@ -69,15 +69,10 @@ export function IntroHero({
     <section className="hero" aria-labelledby="page-title" ref={sectionRef}>
       <div className="heroSkyShift" aria-hidden="true" />
       <div className="heroSun" aria-hidden="true" />
+      <div className="heroGround" aria-hidden="true" />
       <div className="heroHorizon" aria-hidden="true" />
 
-      <div className="eyebrow heroEyebrow" aria-hidden="true">
-        <span>Field instrument No. 01</span>
-        <span>{isDemoMode ? "Development mode" : "Prototype"}</span>
-      </div>
-
       <div className="heroCopy">
-        <p className="kicker">An atlas of evening light</p>
         <h1 id="page-title">Sunsetometer</h1>
         <p className="introduction">An instrument for classifying sunsets</p>
       </div>
@@ -89,11 +84,8 @@ export function IntroHero({
         </a>
 
         <div className="pickerShell">
-          <div className="sunMark" aria-hidden="true">
-            <span />
-          </div>
           <h2>Choose a sunset</h2>
-          <p>Analyse a photograph locally and place it on the colour field.</p>
+          <p>Select a photograph from your device.</p>
           <label
             aria-disabled={isAnalysing}
             className="photographPicker"

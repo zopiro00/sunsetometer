@@ -125,7 +125,9 @@ export function SunsetExportPanel({ onClose, sunset }: SunsetExportPanelProps) {
     LABELS.layout[options.layout],
     LABELS.orientation[options.orientation],
     LABELS.format[options.format],
-    LABELS.sides[options.sides],
+    options.sides === "front"
+      ? LABELS.sides.front
+      : options.format === "poster" ? "Front + archive verso" : "Front + postcard back",
     `${LABELS.density[options.density]} detail`,
     LABELS.paperSize[options.paperSize],
   ].join(" / ");
@@ -159,7 +161,11 @@ export function SunsetExportPanel({ onClose, sunset }: SunsetExportPanelProps) {
               { label: "Wall poster", value: "poster" }, { label: "Postcard", value: "postcard" },
             ]} />
             <OptionGroup label="Sides" name="sides" onChange={changeOption} value={options.sides} options={[
-              { label: "Front only", value: "front" }, { label: "Front + back", value: "front-back" },
+              { label: "Front only", value: "front" },
+              {
+                label: options.format === "poster" ? "Front + archive verso" : "Front + postcard back",
+                value: "front-back",
+              },
             ]} />
             <OptionGroup label="Content density" name="density" onChange={changeOption} value={options.density} options={[
               { label: "Minimal", value: "minimal" }, { label: "Standard", value: "standard" }, { label: "Detailed", value: "detailed" },
@@ -181,10 +187,12 @@ export function SunsetExportPanel({ onClose, sunset }: SunsetExportPanelProps) {
               <p>{summary}</p>
               <p>{options.sides === "front-back" ? "2 PDF pages" : "1 PDF page"}</p>
               <p className="exportContentNote">
-                {options.format === "poster"
-                  ? "The poster prioritises the photograph, classification and a restrained set of key measurements."
+                {options.format === "poster" && options.sides === "front-back"
+                  ? "The front remains display-focused; structured evidence is placed on a separate archive verso."
+                  : options.format === "poster"
+                    ? "The poster prioritises the photograph, classification and a restrained set of key measurements."
                   : options.sides === "front-back"
-                    ? "The front remains visual; structured evidence is reserved for the back."
+                    ? "The front remains visual; structured evidence and correspondence space are reserved for the postcard back."
                     : "The postcard front uses a minimal visual composition."}
               </p>
             </div>
