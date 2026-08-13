@@ -33,9 +33,10 @@ export function IntroHero({
 
     const update = () => {
       frame = 0;
+      const scrollDistance = Math.max(1, section.offsetHeight - window.innerHeight);
       const progress = reducedMotion.matches
         ? 0
-        : Math.min(1, Math.max(0, -section.getBoundingClientRect().top / window.innerHeight));
+        : Math.min(1, Math.max(0, -section.getBoundingClientRect().top / scrollDistance));
       section.style.setProperty("--hero-scroll", progress.toFixed(4));
     };
 
@@ -67,53 +68,55 @@ export function IntroHero({
 
   return (
     <section className="hero" aria-labelledby="page-title" ref={sectionRef}>
-      <div className="heroSkyShift" aria-hidden="true" />
-      <div className="heroSun" aria-hidden="true" />
-      <div className="heroGround" aria-hidden="true" />
-      <div className="heroHorizon" aria-hidden="true" />
+      <div className="heroScene">
+        <div className="heroSkyShift" aria-hidden="true" />
+        <div className="heroSun" aria-hidden="true" />
+        <div className="heroGround" aria-hidden="true" />
+        <div className="heroHorizon" aria-hidden="true" />
 
-      <div className="heroCopy">
-        <h1 id="page-title">Sunsetometer</h1>
-        <p className="introduction">An instrument for classifying sunsets</p>
-      </div>
+        <div className="heroCopy">
+          <h1 id="page-title">Sunsetometer</h1>
+          <p className="introduction">An instrument for classifying sunsets</p>
+        </div>
 
-      <div className="heroLower">
-        <a className="scrollPrompt" href="#instrument-title">
-          <span aria-hidden="true">↓</span>
-          Scroll to begin
-        </a>
+        <div className="heroLower">
+          <a className="scrollPrompt" href="#instrument-title">
+            <span aria-hidden="true">↓</span>
+            Scroll to begin
+          </a>
 
-        <div className="pickerShell">
-          <h2>Choose a sunset</h2>
-          <p>Select a photograph from your device.</p>
-          <label
-            aria-disabled={isAnalysing}
-            className="photographPicker"
-            htmlFor="sunset-photograph"
-          >
-            {isAnalysing ? "Analysing…" : "Choose from your device"}
-          </label>
-          <input
-            accept="image/*"
-            className="visuallyHidden"
-            disabled={isAnalysing}
-            id="sunset-photograph"
-            onChange={handleFileChange}
-            type="file"
-          />
-          <p aria-live="polite" id="picker-status" className="status">
-            {status}
-          </p>
-          {isDemoMode ? (
-            <label className="demoControl">
-              <input
-                checked={showDemo}
-                onChange={(event) => onDemoChange(event.target.checked)}
-                type="checkbox"
-              />
-              Show demo observations
+          <div className="pickerShell">
+            <h2>Choose a sunset</h2>
+            <p>Select a photograph from your device.</p>
+            <label
+              aria-disabled={isAnalysing}
+              className="photographPicker"
+              htmlFor="sunset-photograph"
+            >
+              {isAnalysing ? "Analysing…" : "Choose from your device"}
             </label>
-          ) : null}
+            <input
+              accept="image/*"
+              className="visuallyHidden"
+              disabled={isAnalysing}
+              id="sunset-photograph"
+              onChange={handleFileChange}
+              type="file"
+            />
+            <p aria-live="polite" id="picker-status" className="status">
+              {status}
+            </p>
+            {isDemoMode ? (
+              <label className="demoControl">
+                <input
+                  checked={showDemo}
+                  onChange={(event) => onDemoChange(event.target.checked)}
+                  type="checkbox"
+                />
+                Show demo observations
+              </label>
+            ) : null}
+          </div>
         </div>
       </div>
     </section>
